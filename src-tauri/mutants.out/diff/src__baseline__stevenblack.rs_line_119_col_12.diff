@@ -1,0 +1,21 @@
+--- src/baseline/stevenblack.rs
++++ delete ! in parse_baseline
+@@ -111,17 +111,17 @@
+         let line = line.split('#').next().unwrap_or(line).trim();
+         let mut fields = line.split_whitespace();
+         let (Some(addr), Some(host), None) = (fields.next(), fields.next(), fields.next()) else {
+             continue;
+         };
+         if addr != SINK_V4 {
+             continue;
+         }
+-        if !is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
++        if  /* ~ changed by cargo-mutants ~ */is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
+             continue;
+         }
+         if seen.insert(host.to_string()) {
+             lines.push(format!("{SINK_V4} {host}"));
+         }
+     }
+     lines
+ }

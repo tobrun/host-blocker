@@ -1,0 +1,29 @@
+--- src/app.rs
++++ replace App::remove_all_entries -> AppResult<UiState> with AppResult::new()
+@@ -176,25 +176,17 @@
+         let mut state = self.store.load()?;
+         state.mode = mode;
+         self.apply(&state, None)
+     }
+ 
+     /// Remove the entire managed section from the hosts file and reset all
+     /// persisted state (Settings → “Remove all HostBlocker entries”).
+     pub fn remove_all_entries(&self) -> AppResult<UiState> {
+-        let existing = self.read_hosts()?;
+-        let merged = merge(&existing, None)?;
+-        if merged != existing {
+-            self.write_privileged(&merged)?;
+-        }
+-        let state = AppState::default();
+-        self.store.save(&state)?;
+-        self.store.delete_baseline_hosts()?;
+-        self.build_ui_state(&state)
++        AppResult::new() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ------------------------------------------------------------------
+     // Internals
+     // ------------------------------------------------------------------
+ 
+     /// Render + merge + privileged write, then persist state (and baseline
+     /// cache when `baseline_hosts` is given). Nothing is persisted when the

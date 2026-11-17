@@ -1,0 +1,21 @@
+--- src/app.rs
++++ replace App::backup_path -> &Path with Box::leak(Box::new(Default::default()))
+@@ -90,17 +90,17 @@
+             staging_dir: cache_dir,
+             hosts_path,
+             backup_path,
+         }
+     }
+ 
+     /// `/etc/hosts` → `/etc/hosts.hostblocker.bak`.
+     pub fn backup_path(&self) -> &Path {
+-        &self.backup_path
++        Box::leak(Box::new(Default::default())) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ------------------------------------------------------------------
+     // Queries
+     // ------------------------------------------------------------------
+ 
+     pub fn get_state(&self) -> AppResult<UiState> {
+         let state = self.store.load()?;

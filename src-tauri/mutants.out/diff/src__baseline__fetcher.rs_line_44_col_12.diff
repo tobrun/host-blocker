@@ -1,0 +1,21 @@
+--- src/baseline/fetcher.rs
++++ delete ! in Fetcher::fetch
+@@ -36,17 +36,17 @@
+     pub fn fetch(&self, exts: &[Extension]) -> AppResult<Vec<String>> {
+         let url = self.url_for(exts);
+         let response = self
+             .client
+             .get(&url)
+             .send()
+             .map_err(|e| AppError::Network(format!("could not download {url}: {e}")))?;
+         let status = response.status();
+-        if !status.is_success() {
++        if  /* ~ changed by cargo-mutants ~ */status.is_success() {
+             return Err(AppError::Network(format!(
+                 "{url} responded with HTTP {status}"
+             )));
+         }
+         let body = response
+             .text()
+             .map_err(|e| AppError::Network(format!("could not read {url}: {e}")))?;
+         let hosts = parse_baseline(&body);

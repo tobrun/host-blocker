@@ -1,0 +1,28 @@
+--- src/domain/hostname.rs
++++ replace has_scheme -> bool with false
+@@ -98,24 +98,17 @@
+     fn from(value: Hostname) -> Self {
+         value.0
+     }
+ }
+ 
+ /// True when the string starts with a RFC 3986 scheme followed by `://`,
+ /// e.g. `https://` or `ftp://`.
+ fn has_scheme(input: &str) -> bool {
+-    match input.find("://") {
+-        Some(idx) if idx > 0 => input[..idx].bytes().enumerate().all(|(i, b)| match b {
+-            b'a'..=b'z' | b'A'..=b'Z' => true,
+-            b'0'..=b'9' | b'+' | b'-' | b'.' => i > 0,
+-            _ => false,
+-        }),
+-        _ => false,
+-    }
++    false /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+ 
+     fn host(input: &str) -> String {
+         Hostname::parse(input).unwrap().as_str().to_string()

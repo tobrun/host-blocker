@@ -1,0 +1,26 @@
+--- src/app.rs
++++ replace App::remove_baseline -> AppResult<UiState> with AppResult::new()
+@@ -159,22 +159,17 @@
+         if let Some(m) = state.baseline.as_mut() {
+             m.fetched_at = Utc::now();
+         }
+         self.apply(&state, Some(&hosts))
+     }
+ 
+     /// Drop the baseline entirely (state, cache and hosts-file entries).
+     pub fn remove_baseline(&self) -> AppResult<UiState> {
+-        let mut state = self.store.load()?;
+-        if state.baseline.is_none() {
+-            return Err(AppError::User("No baseline list is imported.".into()));
+-        }
+-        state.baseline = None;
+-        self.apply(&state, Some(&[]))
++        AppResult::new() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn set_mode(&self, mode: BlockingMode) -> AppResult<UiState> {
+         let mut state = self.store.load()?;
+         state.mode = mode;
+         self.apply(&state, None)
+     }
+ 

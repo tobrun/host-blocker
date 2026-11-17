@@ -1,0 +1,21 @@
+--- src/domain/mode.rs
++++ delete ! in BlockingMode::writes_baseline
+@@ -9,17 +9,17 @@
+     /// Baseline is written, the user's own sites are not.
+     CustomPaused,
+     /// Nothing is written; the managed section stays empty.
+     AllPaused,
+ }
+ 
+ impl BlockingMode {
+     pub fn writes_baseline(self) -> bool {
+-        !matches!(self, BlockingMode::AllPaused)
++         /* ~ changed by cargo-mutants ~ */matches!(self, BlockingMode::AllPaused)
+     }
+ 
+     pub fn writes_custom(self) -> bool {
+         matches!(self, BlockingMode::Active)
+     }
+ }
+ 
+ #[cfg(test)]

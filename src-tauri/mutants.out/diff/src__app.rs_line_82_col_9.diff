@@ -1,0 +1,32 @@
+--- src/app.rs
++++ replace App::with_parts -> Self with Default::default()
+@@ -74,28 +74,17 @@
+     /// Dependency-injecting constructor shared by production and tests.
+     pub fn with_parts(
+         state_dir: impl Into<PathBuf>,
+         cache_dir: impl Into<PathBuf>,
+         hosts_path: impl Into<PathBuf>,
+         writer: Arc<dyn PrivilegedWriter>,
+         base_url: impl Into<String>,
+     ) -> Self {
+-        let state_dir = state_dir.into();
+-        let cache_dir = cache_dir.into();
+-        let hosts_path = hosts_path.into();
+-        let backup_path = default_backup_path(&hosts_path);
+-        Self {
+-            store: Store::with_dirs(state_dir, cache_dir.clone()),
+-            fetcher: Fetcher::new(base_url),
+-            writer,
+-            staging_dir: cache_dir,
+-            hosts_path,
+-            backup_path,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// `/etc/hosts` → `/etc/hosts.hostblocker.bak`.
+     pub fn backup_path(&self) -> &Path {
+         &self.backup_path
+     }
+ 
+     // ------------------------------------------------------------------

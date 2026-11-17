@@ -1,0 +1,27 @@
+--- src/app.rs
++++ replace App::production -> Self with Default::default()
+@@ -57,23 +57,17 @@
+ impl App {
+     /// Production wiring: real privileged writer, canonical StevenBlack
+     /// base URL.
+     pub fn production(
+         state_dir: impl Into<PathBuf>,
+         cache_dir: impl Into<PathBuf>,
+         hosts_path: impl Into<PathBuf>,
+     ) -> Self {
+-        Self::with_parts(
+-            state_dir,
+-            cache_dir,
+-            hosts_path,
+-            Arc::from(default_writer()),
+-            crate::baseline::stevenblack::DEFAULT_BASE_URL,
+-        )
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Dependency-injecting constructor shared by production and tests.
+     pub fn with_parts(
+         state_dir: impl Into<PathBuf>,
+         cache_dir: impl Into<PathBuf>,
+         hosts_path: impl Into<PathBuf>,
+         writer: Arc<dyn PrivilegedWriter>,

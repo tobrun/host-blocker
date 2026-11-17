@@ -1,0 +1,35 @@
+--- src/app.rs
++++ replace App::write_privileged -> AppResult<()> with AppResult::new()
+@@ -208,31 +208,17 @@
+         self.store.save(state)?;
+         if let Some(hosts) = baseline_hosts {
+             self.store.save_baseline_hosts(hosts)?;
+         }
+         self.build_ui_state(state)
+     }
+ 
+     fn write_privileged(&self, content: &str) -> AppResult<()> {
+-        fs::create_dir_all(&self.staging_dir)?;
+-        let seq = STAGE_COUNTER.fetch_add(1, Ordering::Relaxed);
+-        let staged =
+-            self.staging_dir
+-                .join(format!("hostblocker-hosts.{}.{}", std::process::id(), seq));
+-        fs::write(&staged, content)?;
+-        let result = self
+-            .writer
+-            .install_hosts(&staged, &self.hosts_path, &self.backup_path);
+-        let _ = fs::remove_file(&staged);
+-        match result {
+-            Ok(()) => Ok(()),
+-            Err(WriteError::Cancelled) => Err(AppError::Cancelled),
+-            Err(WriteError::Failed(msg)) => Err(AppError::Privileged(msg)),
+-        }
++        AppResult::new() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The complete new `/etc/hosts` document for `state`.
+     fn render_full(
+         &self,
+         state: &AppState,
+         baseline_override: Option<&[String]>,
+     ) -> AppResult<String> {

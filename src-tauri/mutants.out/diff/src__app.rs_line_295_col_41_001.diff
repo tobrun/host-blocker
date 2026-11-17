@@ -1,0 +1,21 @@
+--- src/app.rs
++++ replace + with * in App::build_ui_state
+@@ -287,17 +287,17 @@
+             .as_ref()
+             .filter(|_| state.mode.writes_baseline())
+             .map(|b| b.host_count)
+             .unwrap_or(0);
+         Ok(UiState {
+             mode: state.mode,
+             sites: state.sites.iter().map(|h| h.to_string()).collect(),
+             baseline,
+-            blocked_count: custom_count + baseline_count,
++            blocked_count: custom_count * /* ~ changed by cargo-mutants ~ */ baseline_count,
+         })
+     }
+ }
+ 
+ /// De-duplicated, canonically ordered extension list for persistence.
+ fn canonical_extensions(exts: &[Extension]) -> Vec<Extension> {
+     let mut v: Vec<Extension> = exts
+         .iter()

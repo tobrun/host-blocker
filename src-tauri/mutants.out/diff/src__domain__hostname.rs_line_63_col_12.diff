@@ -1,0 +1,21 @@
+--- src/domain/hostname.rs
++++ delete ! in Hostname::parse
+@@ -55,17 +55,17 @@
+         // the invariant survives a dependency change.
+         let host = host.to_lowercase();
+         // A trailing dot is the DNS root label; the bare host omits it.
+         let host = host.strip_suffix('.').unwrap_or(&host).to_string();
+ 
+         if host == "localhost" {
+             return Err(AppError::User("“localhost” cannot be blocked.".into()));
+         }
+-        if !host.contains('.') {
++        if  /* ~ changed by cargo-mutants ~ */host.contains('.') {
+             return Err(AppError::User(format!(
+                 "“{host}” is not a full website address (no domain suffix)."
+             )));
+         }
+ 
+         let bare = host.strip_prefix("www.").unwrap_or(&host);
+         if bare.is_empty() || !bare.contains('.') {
+             return Err(AppError::User(format!(

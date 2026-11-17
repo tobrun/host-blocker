@@ -254,6 +254,40 @@ mod tests {
     }
 
     #[test]
+    fn parser_accepts_valid_host_shapes() {
+        assert_eq!(parsed("0.0.0.0 a.b"), ["0.0.0.0 a.b"]);
+        assert_eq!(parsed("0.0.0.0 9.9"), ["0.0.0.0 9.9"]);
+        assert_eq!(parsed("0.0.0.0 1.2.3.4"), ["0.0.0.0 1.2.3.4"]);
+        assert_eq!(
+            parsed("0.0.0.0 1.2.3.4.example"),
+            ["0.0.0.0 1.2.3.4.example"]
+        );
+        assert_eq!(
+            parsed("0.0.0.0 a-b.example.com"),
+            ["0.0.0.0 a-b.example.com"]
+        );
+        assert_eq!(
+            parsed("0.0.0.0 a_b.example.com"),
+            ["0.0.0.0 a_b.example.com"]
+        );
+        assert_eq!(parsed("0.0.0.0 -a.example.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 a-.example.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 a.-b"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 a.b-"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 a..b"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 .example.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 example.com."), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 exam_ple.com"), ["0.0.0.0 exam_ple.com"]);
+        assert_eq!(parsed("0.0.0.0 exam ple.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 é.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 exa*mple.com"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 example/com"), Vec::<String>::new());
+        // A fourth field makes the line ambiguous: drop it.
+        assert_eq!(parsed("0.0.0.0 a.b extra"), Vec::<String>::new());
+        assert_eq!(parsed("0.0.0.0 9a.b9.c"), ["0.0.0.0 9a.b9.c"]);
+    }
+
+    #[test]
     fn parser_drops_malformed_lines() {
         assert_eq!(
             parsed(

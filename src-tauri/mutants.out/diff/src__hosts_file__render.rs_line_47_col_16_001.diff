@@ -1,0 +1,21 @@
+--- src/hosts_file/render.rs
++++ replace < with > in merge
+@@ -39,17 +39,17 @@
+         return Err(AppError::HostsFile(format!(
+             "found {begin_count} begin markers and {end_count} end markers; \
+              expected one of each"
+         )));
+     }
+ 
+     let begin_idx = existing.find(BEGIN_MARKER).expect("counted above");
+     let end_idx = existing.find(END_MARKER).expect("counted above");
+-    if end_idx < begin_idx {
++    if end_idx > /* ~ changed by cargo-mutants ~ */ begin_idx {
+         return Err(AppError::HostsFile(
+             "the managed section's end marker appears before its begin marker".into(),
+         ));
+     }
+ 
+     let prefix = &existing[..line_start(existing, begin_idx)];
+     let suffix = &existing[line_end(existing, end_idx)..];
+     let middle = match section {

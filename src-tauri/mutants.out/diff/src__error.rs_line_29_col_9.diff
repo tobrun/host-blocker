@@ -1,0 +1,21 @@
+--- src/error.rs
++++ replace <impl From<serde_json::Error> for AppError>::from -> Self with Default::default()
+@@ -21,17 +21,17 @@
+     #[error("input/output error: {0}")]
+     Io(#[from] std::io::Error),
+     #[error("data file error: {0}")]
+     Data(String),
+ }
+ 
+ impl From<serde_json::Error> for AppError {
+     fn from(e: serde_json::Error) -> Self {
+-        AppError::Data(e.to_string())
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl AppError {
+     pub fn kind(&self) -> &'static str {
+         match self {
+             AppError::User(_) => "user",
+             AppError::HostsFile(_) => "hosts_file",

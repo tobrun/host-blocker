@@ -1,0 +1,23 @@
+--- src/app.rs
++++ replace App::set_mode -> AppResult<UiState> with AppResult::from_iter([Default::default()])
+@@ -168,19 +168,17 @@
+         if state.baseline.is_none() {
+             return Err(AppError::User("No baseline list is imported.".into()));
+         }
+         state.baseline = None;
+         self.apply(&state, Some(&[]))
+     }
+ 
+     pub fn set_mode(&self, mode: BlockingMode) -> AppResult<UiState> {
+-        let mut state = self.store.load()?;
+-        state.mode = mode;
+-        self.apply(&state, None)
++        AppResult::from_iter([Default::default()]) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Remove the entire managed section from the hosts file and reset all
+     /// persisted state (Settings → “Remove all HostBlocker entries”).
+     pub fn remove_all_entries(&self) -> AppResult<UiState> {
+         let existing = self.read_hosts()?;
+         let merged = merge(&existing, None)?;
+         if merged != existing {

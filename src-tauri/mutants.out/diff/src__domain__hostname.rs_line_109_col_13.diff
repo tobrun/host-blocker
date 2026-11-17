@@ -1,0 +1,21 @@
+--- src/domain/hostname.rs
++++ delete match arm b'0'..= b'9' | b'+' | b'-' | b'.' in has_scheme
+@@ -101,17 +101,17 @@
+ }
+ 
+ /// True when the string starts with a RFC 3986 scheme followed by `://`,
+ /// e.g. `https://` or `ftp://`.
+ fn has_scheme(input: &str) -> bool {
+     match input.find("://") {
+         Some(idx) if idx > 0 => input[..idx].bytes().enumerate().all(|(i, b)| match b {
+             b'a'..=b'z' | b'A'..=b'Z' => true,
+-            b'0'..=b'9' | b'+' | b'-' | b'.' => i > 0,
++             /* ~ changed by cargo-mutants ~ */
+             _ => false,
+         }),
+         _ => false,
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {

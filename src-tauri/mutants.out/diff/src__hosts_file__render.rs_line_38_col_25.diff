@@ -1,0 +1,21 @@
+--- src/hosts_file/render.rs
++++ replace || with && in merge
+@@ -30,17 +30,17 @@
+ /// markers are damaged (one without the other, duplicated, or crossed).
+ pub fn merge(existing: &str, section: Option<&str>) -> AppResult<String> {
+     let begin_count = existing.matches(BEGIN_MARKER).count();
+     let end_count = existing.matches(END_MARKER).count();
+ 
+     if begin_count == 0 && end_count == 0 {
+         return Ok(append_new(existing, section));
+     }
+-    if begin_count != 1 || end_count != 1 {
++    if begin_count != 1 && /* ~ changed by cargo-mutants ~ */ end_count != 1 {
+         return Err(AppError::HostsFile(format!(
+             "found {begin_count} begin markers and {end_count} end markers; \
+              expected one of each"
+         )));
+     }
+ 
+     let begin_idx = existing.find(BEGIN_MARKER).expect("counted above");
+     let end_idx = existing.find(END_MARKER).expect("counted above");

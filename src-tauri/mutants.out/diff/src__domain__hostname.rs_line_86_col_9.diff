@@ -1,0 +1,21 @@
+--- src/domain/hostname.rs
++++ replace <impl fmt::Display for Hostname>::fmt -> fmt::Result with Ok(Default::default())
+@@ -78,17 +78,17 @@
+ 
+     pub fn as_str(&self) -> &str {
+         &self.0
+     }
+ }
+ 
+ impl fmt::Display for Hostname {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        f.write_str(&self.0)
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl TryFrom<String> for Hostname {
+     type Error = AppError;
+     fn try_from(value: String) -> Result<Self, Self::Error> {
+         Hostname::parse(&value)
+     }

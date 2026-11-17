@@ -1,0 +1,21 @@
+--- src/domain/hostname.rs
++++ delete ! in Hostname::parse
+@@ -26,17 +26,17 @@
+             trimmed.to_string()
+         } else {
+             format!("https://{trimmed}")
+         };
+ 
+         let parsed = Url::parse(&with_scheme)
+             .map_err(|_| AppError::User(format!("“{trimmed}” is not a valid website address.")))?;
+ 
+-        if !matches!(parsed.scheme(), "http" | "https") {
++        if  /* ~ changed by cargo-mutants ~ */matches!(parsed.scheme(), "http" | "https") {
+             return Err(AppError::User(
+                 "Only http and https addresses are supported.".into(),
+             ));
+         }
+ 
+         let host = match parsed.host() {
+             Some(url::Host::Domain(domain)) => domain.to_string(),
+             // `host()` returns IPv4/IPv6 variants for IP literals.

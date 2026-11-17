@@ -1,0 +1,31 @@
+--- src/app.rs
++++ replace App::update_baseline -> AppResult<UiState> with AppResult::from(Default::default())
+@@ -144,27 +144,17 @@
+             fetched_at: Utc::now(),
+         });
+         self.apply(&state, Some(&hosts))
+     }
+ 
+     /// Re-download the currently selected variant. A failed download leaves
+     /// the previous baseline untouched.
+     pub fn update_baseline(&self) -> AppResult<UiState> {
+-        let state = self.store.load()?;
+-        let meta = state
+-            .baseline
+-            .as_ref()
+-            .ok_or_else(|| AppError::User("No baseline list is imported.".into()))?;
+-        let hosts = self.fetcher.fetch(&meta.extensions)?;
+-        let mut state = state.clone();
+-        if let Some(m) = state.baseline.as_mut() {
+-            m.fetched_at = Utc::now();
+-        }
+-        self.apply(&state, Some(&hosts))
++        AppResult::from(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Drop the baseline entirely (state, cache and hosts-file entries).
+     pub fn remove_baseline(&self) -> AppResult<UiState> {
+         let mut state = self.store.load()?;
+         if state.baseline.is_none() {
+             return Err(AppError::User("No baseline list is imported.".into()));
+         }

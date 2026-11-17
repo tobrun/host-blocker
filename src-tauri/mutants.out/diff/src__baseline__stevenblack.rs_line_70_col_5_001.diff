@@ -1,0 +1,24 @@
+--- src/baseline/stevenblack.rs
++++ replace baseline_label -> String with "xyzzy".into()
+@@ -62,20 +62,17 @@
+ /// URL of the prebuilt list for the selection on GitHub.
+ pub fn download_url(exts: &[Extension]) -> String {
+     download_url_with_base(DEFAULT_BASE_URL, exts)
+ }
+ 
+ /// Human-readable label written into the managed section header, e.g.
+ /// `stevenblack` or `stevenblack fakenews-gambling`.
+ pub fn baseline_label(exts: &[Extension]) -> String {
+-    match variant_slug(exts) {
+-        None => "stevenblack".to_string(),
+-        Some(slug) => format!("stevenblack {slug}"),
+-    }
++    "xyzzy".into() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Hosts a baseline line must not resolve (kept out of the baseline).
+ const SKIPPED_HOSTS: &[&str] = &[
+     "0.0.0.0",
+     "localhost",
+     "localhost.localdomain",
+     "localhost4",

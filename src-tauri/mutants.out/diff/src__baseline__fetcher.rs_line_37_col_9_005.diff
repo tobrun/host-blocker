@@ -1,0 +1,36 @@
+--- src/baseline/fetcher.rs
++++ replace Fetcher::fetch -> AppResult<Vec<String>> with AppResult::new(vec![String::new()])
+@@ -29,32 +29,11 @@
+ 
+     pub fn url_for(&self, exts: &[Extension]) -> String {
+         download_url_with_base(&self.base_url, exts)
+     }
+ 
+     /// Download and parse the list for the selected extensions.
+     /// Blocking; callers run this off the main thread.
+     pub fn fetch(&self, exts: &[Extension]) -> AppResult<Vec<String>> {
+-        let url = self.url_for(exts);
+-        let response = self
+-            .client
+-            .get(&url)
+-            .send()
+-            .map_err(|e| AppError::Network(format!("could not download {url}: {e}")))?;
+-        let status = response.status();
+-        if !status.is_success() {
+-            return Err(AppError::Network(format!(
+-                "{url} responded with HTTP {status}"
+-            )));
+-        }
+-        let body = response
+-            .text()
+-            .map_err(|e| AppError::Network(format!("could not read {url}: {e}")))?;
+-        let hosts = parse_baseline(&body);
+-        if hosts.is_empty() {
+-            return Err(AppError::Network(format!(
+-                "{url} contained no usable entries"
+-            )));
+-        }
+-        Ok(hosts)
++        AppResult::new(vec![String::new()]) /* ~ changed by cargo-mutants ~ */
+     }
+ }

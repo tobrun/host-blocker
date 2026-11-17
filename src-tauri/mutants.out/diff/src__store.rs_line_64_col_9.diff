@@ -1,0 +1,24 @@
+--- src/store.rs
++++ replace Store::with_dirs -> Self with Default::default()
+@@ -56,20 +56,17 @@
+         let dir = dir.into();
+         Self {
+             state_dir: dir.clone(),
+             cache_dir: dir,
+         }
+     }
+ 
+     pub fn with_dirs(state_dir: impl Into<PathBuf>, cache_dir: impl Into<PathBuf>) -> Self {
+-        Self {
+-            state_dir: state_dir.into(),
+-            cache_dir: cache_dir.into(),
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn state_path(&self) -> PathBuf {
+         self.state_dir.join(STATE_FILE)
+     }
+ 
+     pub fn baseline_cache_path(&self) -> PathBuf {
+         self.cache_dir.join(BASELINE_CACHE_FILE)

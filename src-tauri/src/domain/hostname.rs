@@ -205,6 +205,25 @@ mod tests {
     }
 
     #[test]
+    fn scheme_prefix_must_be_a_valid_scheme() {
+        // `://` at position 0 has no scheme in front of it.
+        assert!(!has_scheme("://example.com"));
+        // A scheme must start with a letter; digits, `+`, `-` and `.` are
+        // only legal after the first character.
+        assert!(!has_scheme("1http://example.com"));
+        assert!(!has_scheme("+http://example.com"));
+        assert!(!has_scheme("-http://example.com"));
+        assert!(!has_scheme(".http://example.com"));
+        assert!(has_scheme("h1ttp://example.com"));
+        assert!(has_scheme("http+1://example.com"));
+        assert!(has_scheme("http-1://example.com"));
+        assert!(has_scheme("h.t.t.p://example.com"));
+        // Anything with no `://` at all is a bare host.
+        assert!(!has_scheme("example.com"));
+        assert!(!has_scheme("http:example.com"));
+    }
+
+    #[test]
     fn serde_round_trips_as_string() {
         let h = Hostname::parse("https://www.example.com/a").unwrap();
         let json = serde_json::to_string(&h).unwrap();

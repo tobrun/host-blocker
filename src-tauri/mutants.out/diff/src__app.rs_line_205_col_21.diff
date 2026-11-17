@@ -1,0 +1,21 @@
+--- src/app.rs
++++ replace != with == in App::apply
+@@ -197,17 +197,17 @@
+     // ------------------------------------------------------------------
+ 
+     /// Render + merge + privileged write, then persist state (and baseline
+     /// cache when `baseline_hosts` is given). Nothing is persisted when the
+     /// privileged write fails or is cancelled.
+     fn apply(&self, state: &AppState, baseline_hosts: Option<&[String]>) -> AppResult<UiState> {
+         let rendered = self.render_full(state, baseline_hosts)?;
+         let existing = self.read_hosts()?;
+-        if rendered != existing {
++        if rendered == /* ~ changed by cargo-mutants ~ */ existing {
+             self.write_privileged(&rendered)?;
+         }
+         self.store.save(state)?;
+         if let Some(hosts) = baseline_hosts {
+             self.store.save_baseline_hosts(hosts)?;
+         }
+         self.build_ui_state(state)
+     }

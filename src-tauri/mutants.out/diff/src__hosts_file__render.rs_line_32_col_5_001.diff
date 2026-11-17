@@ -1,0 +1,48 @@
+--- src/hosts_file/render.rs
++++ replace merge -> AppResult<String> with AppResult::from_iter([String::new()])
+@@ -24,44 +24,17 @@
+ }
+ 
+ /// Merge `section` (or remove the managed section when `None`) into
+ /// `existing`, preserving everything outside the markers byte-for-byte.
+ ///
+ /// Returns an error — and leaves the caller's file untouched — when the
+ /// markers are damaged (one without the other, duplicated, or crossed).
+ pub fn merge(existing: &str, section: Option<&str>) -> AppResult<String> {
+-    let begin_count = existing.matches(BEGIN_MARKER).count();
+-    let end_count = existing.matches(END_MARKER).count();
+-
+-    if begin_count == 0 && end_count == 0 {
+-        return Ok(append_new(existing, section));
+-    }
+-    if begin_count != 1 || end_count != 1 {
+-        return Err(AppError::HostsFile(format!(
+-            "found {begin_count} begin markers and {end_count} end markers; \
+-             expected one of each"
+-        )));
+-    }
+-
+-    let begin_idx = existing.find(BEGIN_MARKER).expect("counted above");
+-    let end_idx = existing.find(END_MARKER).expect("counted above");
+-    if end_idx < begin_idx {
+-        return Err(AppError::HostsFile(
+-            "the managed section's end marker appears before its begin marker".into(),
+-        ));
+-    }
+-
+-    let prefix = &existing[..line_start(existing, begin_idx)];
+-    let suffix = &existing[line_end(existing, end_idx)..];
+-    let middle = match section {
+-        Some(s) => format!("{s}\n"),
+-        None => String::new(),
+-    };
+-    Ok(format!("{prefix}{middle}{suffix}"))
++    AppResult::from_iter([String::new()]) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn append_new(existing: &str, section: Option<&str>) -> String {
+     let Some(section) = section else {
+         // Nothing to remove; return the file unchanged.
+         return existing.to_string();
+     };
+     if existing.is_empty() {

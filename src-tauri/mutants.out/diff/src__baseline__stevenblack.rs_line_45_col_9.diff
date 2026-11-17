@@ -1,0 +1,26 @@
+--- src/baseline/stevenblack.rs
++++ replace Extension::as_slug -> &'static str with ""
+@@ -37,22 +37,17 @@
+             .map(|e| e.as_slug().to_string())
+             .collect::<Vec<_>>()
+             .join("-"),
+     )
+ }
+ 
+ impl Extension {
+     fn as_slug(self) -> &'static str {
+-        match self {
+-            Extension::FakeNews => "fakenews",
+-            Extension::Gambling => "gambling",
+-            Extension::Porn => "porn",
+-            Extension::Social => "social",
+-        }
++        "" /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// URL of the prebuilt list for the selection under `base`.
+ pub fn download_url_with_base(base: &str, exts: &[Extension]) -> String {
+     match variant_slug(exts) {
+         None => format!("{base}/hosts"),
+         Some(slug) => format!("{base}/alternates/{slug}/hosts"),

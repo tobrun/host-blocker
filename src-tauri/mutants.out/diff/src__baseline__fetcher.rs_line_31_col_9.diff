@@ -1,0 +1,21 @@
+--- src/baseline/fetcher.rs
++++ replace Fetcher::url_for -> String with String::new()
+@@ -23,17 +23,17 @@
+                 .timeout(REQUEST_TIMEOUT)
+                 .user_agent(concat!("HostBlocker/", env!("CARGO_PKG_VERSION")))
+                 .build()
+                 .expect("reqwest client"),
+         }
+     }
+ 
+     pub fn url_for(&self, exts: &[Extension]) -> String {
+-        download_url_with_base(&self.base_url, exts)
++        String::new() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Download and parse the list for the selected extensions.
+     /// Blocking; callers run this off the main thread.
+     pub fn fetch(&self, exts: &[Extension]) -> AppResult<Vec<String>> {
+         let url = self.url_for(exts);
+         let response = self
+             .client

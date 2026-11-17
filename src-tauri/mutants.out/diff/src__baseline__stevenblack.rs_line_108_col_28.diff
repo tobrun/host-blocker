@@ -1,0 +1,21 @@
+--- src/baseline/stevenblack.rs
++++ replace || with && in parse_baseline
+@@ -100,17 +100,17 @@
+ /// Dropped: comments, blank lines, inline comments, non-`0.0.0.0` lines,
+ /// `0.0.0.0 0.0.0.0`, loopback/localhost entries and malformed hosts.
+ pub fn parse_baseline(content: &str) -> Vec<String> {
+     use crate::hosts_file::constants::SINK_V4;
+     let mut seen = HashSet::new();
+     let mut lines = Vec::new();
+     for raw in content.lines() {
+         let line = raw.trim().trim_end_matches('\r');
+-        if line.is_empty() || line.starts_with('#') {
++        if line.is_empty() && /* ~ changed by cargo-mutants ~ */ line.starts_with('#') {
+             continue;
+         }
+         let line = line.split('#').next().unwrap_or(line).trim();
+         let mut fields = line.split_whitespace();
+         let (Some(addr), Some(host), None) = (fields.next(), fields.next(), fields.next()) else {
+             continue;
+         };
+         if addr != SINK_V4 {

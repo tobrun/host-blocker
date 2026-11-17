@@ -1,0 +1,27 @@
+--- src/store.rs
++++ replace save_json -> AppResult<()> with AppResult::from(())
+@@ -120,23 +120,17 @@
+             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+             Err(e) => Err(e.into()),
+         }
+     }
+ }
+ 
+ /// Write `value` as pretty JSON to `path` atomically.
+ pub fn save_json<T: Serialize>(path: &Path, value: &T) -> AppResult<()> {
+-    if let Some(parent) = path.parent() {
+-        fs::create_dir_all(parent)?;
+-    }
+-    let text = serde_json::to_string_pretty(value)?;
+-    let tmp = write_tmp(path, text.as_bytes())?;
+-    fs::rename(&tmp, path)?;
+-    Ok(())
++    AppResult::from(()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn write_tmp(path: &Path, bytes: &[u8]) -> AppResult<PathBuf> {
+     let tmp = path.with_extension("tmp");
+     fs::write(&tmp, bytes)?;
+     Ok(tmp)
+ }
+ 

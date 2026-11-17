@@ -1,0 +1,27 @@
+--- src/app.rs
++++ replace App::import_baseline -> AppResult<UiState> with AppResult::new(Default::default())
+@@ -132,23 +132,17 @@
+         if state.sites.len() == before {
+             return Err(AppError::User(format!("{host} is not in your list.")));
+         }
+         self.apply(&state, None)
+     }
+ 
+     /// Download a StevenBlack variant and start using it as the baseline.
+     pub fn import_baseline(&self, extensions: &[Extension]) -> AppResult<UiState> {
+-        let hosts = self.fetcher.fetch(extensions)?;
+-        let mut state = self.store.load()?;
+-        state.baseline = Some(BaselineMeta {
+-            extensions: canonical_extensions(extensions),
+-            fetched_at: Utc::now(),
+-        });
+-        self.apply(&state, Some(&hosts))
++        AppResult::new(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Re-download the currently selected variant. A failed download leaves
+     /// the previous baseline untouched.
+     pub fn update_baseline(&self) -> AppResult<UiState> {
+         let state = self.store.load()?;
+         let meta = state
+             .baseline

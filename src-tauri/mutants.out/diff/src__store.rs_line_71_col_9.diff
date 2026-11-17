@@ -1,0 +1,21 @@
+--- src/store.rs
++++ replace Store::state_path -> PathBuf with Default::default()
+@@ -63,17 +63,17 @@
+     pub fn with_dirs(state_dir: impl Into<PathBuf>, cache_dir: impl Into<PathBuf>) -> Self {
+         Self {
+             state_dir: state_dir.into(),
+             cache_dir: cache_dir.into(),
+         }
+     }
+ 
+     pub fn state_path(&self) -> PathBuf {
+-        self.state_dir.join(STATE_FILE)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn baseline_cache_path(&self) -> PathBuf {
+         self.cache_dir.join(BASELINE_CACHE_FILE)
+     }
+ 
+     /// Missing file yields the defaults; a corrupt file is an error rather
+     /// than a silent reset.

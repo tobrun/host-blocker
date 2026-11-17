@@ -1,0 +1,44 @@
+--- src/baseline/stevenblack.rs
++++ replace parse_baseline -> Vec<String> with vec![String::new()]
+@@ -95,40 +95,17 @@
+ 
+ /// Parse a StevenBlack-style hosts file, keeping one `0.0.0.0 <host>` line
+ /// per unique host of every valid entry, in first-seen order. These lines
+ /// are written into the managed section verbatim.
+ ///
+ /// Dropped: comments, blank lines, inline comments, non-`0.0.0.0` lines,
+ /// `0.0.0.0 0.0.0.0`, loopback/localhost entries and malformed hosts.
+ pub fn parse_baseline(content: &str) -> Vec<String> {
+-    use crate::hosts_file::constants::SINK_V4;
+-    let mut seen = HashSet::new();
+-    let mut lines = Vec::new();
+-    for raw in content.lines() {
+-        let line = raw.trim().trim_end_matches('\r');
+-        if line.is_empty() || line.starts_with('#') {
+-            continue;
+-        }
+-        let line = line.split('#').next().unwrap_or(line).trim();
+-        let mut fields = line.split_whitespace();
+-        let (Some(addr), Some(host), None) = (fields.next(), fields.next(), fields.next()) else {
+-            continue;
+-        };
+-        if addr != SINK_V4 {
+-            continue;
+-        }
+-        if !is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
+-            continue;
+-        }
+-        if seen.insert(host.to_string()) {
+-            lines.push(format!("{SINK_V4} {host}"));
+-        }
+-    }
+-    lines
++    vec![String::new()] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Minimal shape check for a hosts-file entry name (lists are plain ASCII).
+ fn is_plausible_host(host: &str) -> bool {
+     !host.is_empty()
+         && host.contains('.')
+         && host
+             .bytes()

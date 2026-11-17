@@ -1,0 +1,21 @@
+--- src/domain/hostname.rs
++++ replace == with != in Hostname::parse
+@@ -52,17 +52,17 @@
+             }
+         };
+         // `url` already lower-cases and punycodes domains, but be explicit so
+         // the invariant survives a dependency change.
+         let host = host.to_lowercase();
+         // A trailing dot is the DNS root label; the bare host omits it.
+         let host = host.strip_suffix('.').unwrap_or(&host).to_string();
+ 
+-        if host == "localhost" {
++        if host != /* ~ changed by cargo-mutants ~ */ "localhost" {
+             return Err(AppError::User("“localhost” cannot be blocked.".into()));
+         }
+         if !host.contains('.') {
+             return Err(AppError::User(format!(
+                 "“{host}” is not a full website address (no domain suffix)."
+             )));
+         }
+ 

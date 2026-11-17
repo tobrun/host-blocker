@@ -1,0 +1,17 @@
+src/app.rs:266:23: replace match guard e.kind() == std::io::ErrorKind::NotFound with true in App::read_hosts
+src/app.rs:266:23: replace match guard e.kind() == std::io::ErrorKind::NotFound with false in App::read_hosts
+src/app.rs:266:32: replace == with != in App::read_hosts
+src/error.rs:35:9: replace AppError::kind -> &'static str with ""
+src/error.rs:35:9: replace AppError::kind -> &'static str with "xyzzy"
+src/store.rs:88:23: replace match guard e.kind() == std::io::ErrorKind::NotFound with true in Store::load
+src/store.rs:105:23: replace match guard e.kind() == std::io::ErrorKind::NotFound with true in Store::load_baseline_hosts
+src/store.rs:120:23: replace match guard e.kind() == std::io::ErrorKind::NotFound with true in Store::delete_baseline_hosts
+src/baseline/stevenblack.rs:108:28: replace || with && in parse_baseline
+src/baseline/stevenblack.rs:135:79: replace == with != in is_plausible_host
+src/domain/hostname.rs:107:22: replace match guard idx > 0 with true in has_scheme
+src/domain/hostname.rs:107:26: replace > with >= in has_scheme
+src/domain/hostname.rs:109:13: delete match arm b'0'..= b'9' | b'+' | b'-' | b'.' in has_scheme
+src/domain/hostname.rs:109:51: replace > with == in has_scheme
+src/domain/hostname.rs:109:51: replace > with < in has_scheme
+src/domain/hostname.rs:109:51: replace > with >= in has_scheme
+src/hosts_file/render.rs:47:16: replace < with <= in merge
