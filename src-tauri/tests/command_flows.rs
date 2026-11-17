@@ -330,6 +330,31 @@ async fn corrupt_state_file_surfaces_as_error() {
     assert!(matches!(err, AppError::Data(_)));
 }
 
+#[tokio::test]
+async fn missing_hosts_file_is_treated_as_empty() {
+    // App::read_hosts maps NotFound to "" so a fresh box still works; a
+    // guard mutant that instead errors must fail this.
+    let env = Env::new();
+    fs::remove_file(&env.hosts).unwrap();
+    let state = off!(env, UNUSED_BASE, |a| a.add_site("reddit.com")).unwrap();
+    assert_eq!(state.sites, vec!["reddit.com".to_string()]);
+    let written = env.writer.last().unwrap();
+    assert!(written.contains("0.0.0.0 reddit.com"));
+    assert!(!written.contains("mybox"));
+}
+
+#[tokio::test]
+async fn unreadable_hosts_file_reports_the_io_error_before_writing() {
+    // A directory at the hosts path fails with a non-NotFound kind; the
+    // NotFound fallback must not swallow it into an "empty" file.
+    let env = Env::new();
+    fs::remove_file(&env.hosts).unwrap();
+    fs::create_dir(&env.hosts).unwrap();
+    let err = off!(env, UNUSED_BASE, |a| a.add_site("reddit.com")).unwrap_err();
+    assert_eq!(err.kind(), "io");
+    assert!(env.writer.last().is_none(), "no privileged write attempted");
+}
+
 #[allow(dead_code)]
 fn assert_send_sync<T: Send + Sync>() {}
 

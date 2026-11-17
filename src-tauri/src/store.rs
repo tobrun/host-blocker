@@ -171,6 +171,25 @@ mod tests {
     }
 
     #[test]
+    fn only_not_found_falls_back_other_io_errors_propagate() {
+        // A directory in place of the file fails with a non-NotFound kind
+        // (EISDIR); the NotFound fallbacks must not swallow that.
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::new(dir.path());
+        std::fs::create_dir(store.state_path()).unwrap();
+        std::fs::create_dir(store.baseline_cache_path()).unwrap();
+
+        let err = store.load().unwrap_err();
+        assert_eq!(err.kind(), "io");
+
+        let err = store.load_baseline_hosts().unwrap_err();
+        assert_eq!(err.kind(), "io");
+
+        let err = store.delete_baseline_hosts().unwrap_err();
+        assert_eq!(err.kind(), "io");
+    }
+
+    #[test]
     fn corrupt_file_is_an_error_not_a_reset() {
         let dir = tempfile::tempdir().unwrap();
         let store = Store::new(dir.path());

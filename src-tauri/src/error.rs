@@ -55,3 +55,35 @@ impl Serialize for AppError {
 }
 
 pub type AppResult<T> = Result<T, AppError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kind_names_are_stable_strings() {
+        // The frontend switches on these exact values; renaming one is a
+        // breaking change.
+        assert_eq!(AppError::User("u".into()).kind(), "user");
+        assert_eq!(AppError::HostsFile("h".into()).kind(), "hosts_file");
+        assert_eq!(AppError::Network("n".into()).kind(), "network");
+        assert_eq!(AppError::Cancelled.kind(), "cancelled");
+        assert_eq!(AppError::Privileged("p".into()).kind(), "privileged");
+        assert_eq!(AppError::Io(std::io::Error::other("i")).kind(), "io");
+        assert_eq!(AppError::Data("d".into()).kind(), "data");
+    }
+
+    #[test]
+    fn serializes_as_kind_and_message() {
+        let value = serde_json::to_value(AppError::Cancelled).unwrap();
+        assert_eq!(value["kind"], "cancelled");
+        assert!(value["message"].is_string());
+
+        let value = serde_json::to_value(AppError::HostsFile("bad markers".into())).unwrap();
+        assert_eq!(value["kind"], "hosts_file");
+        assert_eq!(
+            value["message"],
+            "could not update the hosts file: bad markers"
+        );
+    }
+}

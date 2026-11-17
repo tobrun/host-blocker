@@ -15,6 +15,13 @@ exclude_globs = [
   "src/hosts_file/writer.rs",
 ]
 
-# No deliberately accepted survivors at the moment; if one is ever added,
-# document it here with an exclude_re and the reason.
-exclude_re = []
+# Two accepted equivalent mutants (unkillable by any input):
+# - stevenblack.rs parse_baseline `||`->`&&` on `is_empty() || starts_with('#')`:
+#   with && the guard never fires, but the loop body drops empty and comment
+#   lines identically (their first '#' or whitespace split yields no fields).
+# - render.rs merge `<`->`<=` on `end_idx < begin_idx`: the two distinct
+#   markers can never start at the same byte index, so equality is impossible.
+exclude_re = [
+  "replace \\|\\| with && in parse_baseline",
+  "replace < with <= in merge",
+]
