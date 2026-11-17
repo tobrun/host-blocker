@@ -1,9 +1,13 @@
 # HostBlocker
 
 Block websites on your own machine by managing `/etc/hosts` — with a simple
-desktop GUI, one curated block list, and an admin prompt for every change.
+desktop GUI, curated block lists, and an admin prompt for every change.
 
 <p align="center"><img src="app-icon.png" width="128" alt="HostBlocker icon"></p>
+
+<p align="center">
+  <img src="docs/screenshot.png" width="880" alt="HostBlocker's Block Lists page: the active StevenBlack baseline with its categories, other popular lists ready to replace it, and the blocking status card">
+</p>
 
 ## Install
 
