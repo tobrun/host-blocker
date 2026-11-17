@@ -74,7 +74,9 @@ uninstall() {
 }
 
 install_macos() {
-  ASSET="$(asset_name "^${APP_NAME}_.*_universal-apple-darwin\\.app\\.tar\\.gz$")"
+  # tauri-action names the macOS updater tarball without a version when
+  # building the universal target (e.g. HostBlocker_universal.app.tar.gz).
+  ASSET="$(asset_name "^${APP_NAME}_.*\\.app\\.tar\\.gz$")"
   [ -n "$ASSET" ] || fail "no macOS universal tarball found in release ${TAG}"
   echo "Downloading ${ASSET} ..."
   curl -fL --progress-bar -o "${TMP_DIR}/${ASSET}" "${RELEASE_URL}/${ASSET}"
