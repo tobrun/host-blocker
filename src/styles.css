@@ -3,7 +3,13 @@
   font-size: 15px;
   line-height: 1.5;
   color: #111827;
-  background: #f8fafc;
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --muted: #64748b;
+  --blue: #2563eb;
+  --blue-soft: #dbeafe;
+  --danger: #dc2626;
 }
 
 * {
@@ -13,4 +19,407 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: var(--bg);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------------- sidebar ---------------- */
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: #eef2f7;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px 20px;
+  gap: 24px;
+}
+
+.brand {
+  text-align: center;
+}
+
+.brand-logo {
+  color: var(--blue);
+  display: flex;
+  justify-content: center;
+}
+
+.brand h1 {
+  font-size: 24px;
+  margin: 8px 0 2px;
+}
+
+.brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-item {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  background: #e2e8f0;
+}
+
+.nav-item.active {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+/* ---------------- status card ---------------- */
+
+.status-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.status-card.placeholder {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+}
+
+.status-customPaused .status-dot {
+  background: #f59e0b;
+}
+
+.status-allPaused .status-dot {
+  background: #94a3b8;
+}
+
+.status-count {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.status-toggle {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+}
+
+.status-toggle.on {
+  background: var(--blue);
+  justify-content: flex-end;
+}
+
+.status-toggle.off {
+  justify-content: flex-start;
+}
+
+.knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.status-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---------------- main content ---------------- */
+
+.content {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 980px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 30px;
+  margin: 0 0 4px;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.search {
+  min-width: 240px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.notice button {
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+/* ---------------- cards & rows ---------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 18px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.list-row,
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+}
+
+.site-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list-row + .list-row {
+  border-top: 1px solid var(--border);
+}
+
+.row-title {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.row-desc {
+  margin: 2px 0 6px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.row-link {
+  color: var(--blue);
+  font-size: 13px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #166534;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.ext-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.ext-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13.5px;
+  color: #334155;
+}
+
+.site-host {
+  font-weight: 600;
+}
+
+.site-lines {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.empty {
+  color: var(--muted);
+  padding: 18px;
+  margin: 0;
+}
+
+/* ---------------- buttons & forms ---------------- */
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: #1f2937;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-weight: 600;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn.danger {
+  color: var(--danger);
+  border-color: #fecaca;
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.add-site .row-body {
+  padding: 16px 18px;
+}
+
+.add-site h2 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+
+.add-site-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.add-site-form input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 13.5px;
+  margin: 8px 0 0;
+}
+
+.settings-row {
+  align-items: center;
+}
+
+.about-body {
+  padding: 16px 18px;
+}
+
+.about-body p {
+  margin: 6px 0;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 13.5px;
 }
