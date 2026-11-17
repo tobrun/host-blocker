@@ -71,7 +71,7 @@ jobs:
         working-directory: src-tauri
         run: |
           git fetch origin "$GITHUB_BASE_REF"
-          cargo mutants --in-place --in-diff <(git diff "origin/$GITHUB_BASE_REF"...HEAD) --no-fork
+          cargo mutants --in-place --in-diff <(git diff "origin/$GITHUB_BASE_REF"...HEAD)
 
   mutation-full:
     name: Mutation tests (full, main only)
@@ -100,7 +100,7 @@ jobs:
       - run: cargo install cargo-mutants --locked
       - name: cargo mutants (full)
         working-directory: src-tauri
-        run: cargo mutants --in-place --no-fork
+        run: cargo mutants --in-place
       - name: StrykerJS
         run: pnpm exec stryker run stryker.config.json
       - uses: actions/upload-artifact@v4
