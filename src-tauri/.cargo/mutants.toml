@@ -1,0 +1,20 @@
+# cargo-mutants configuration — see https://mutants.rs
+#
+# Excluded code (with reasons):
+# - main.rs / lib.rs: process bootstrap and Tauri builder glue, only
+#   executable in a real app run.
+# - commands.rs: `#[tauri::command]` attribute plumbing that just forwards to
+#   app.rs; the logic it calls is fully mutated and tested there.
+# - hosts_file/writer.rs: osascript/pkexec shell-outs that cannot run in CI;
+#   trait-selected platform code exercised manually per the test plan.
+# - Test modules are skipped by cargo-mutants automatically.
+exclude_globs = [
+  "src/main.rs",
+  "src/lib.rs",
+  "src/commands.rs",
+  "src/hosts_file/writer.rs",
+]
+
+# No deliberately accepted survivors at the moment; if one is ever added,
+# document it here with an exclude_re and the reason.
+exclude_re = []
