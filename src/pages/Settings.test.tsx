@@ -81,6 +81,9 @@ describe("Settings", () => {
     );
     screen.getByRole("button", { name: "Remove all entries" }).click();
     expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Remove every HostBlocker entry from /etc/hosts?",
+    );
     expect(onRemoveAll).not.toHaveBeenCalled();
 
     confirmSpy.mockReturnValue(true);

@@ -25,7 +25,8 @@ describe("Sidebar", () => {
     expect(screen.getByRole("button", { name: "Block Lists" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("button", { name: "Block Lists" }).className).toContain("active");
     expect(screen.getByRole("button", { name: "About" }).getAttribute("aria-current")).toBeNull();
-    expect(screen.getByRole("button", { name: "About" }).className).not.toContain("active");
+    expect(screen.getByRole("button", { name: "About" }).className.trim()).toBe("nav-item");
+    expect(screen.getByRole("button", { name: "Block Lists" }).className.trim()).toBe("nav-item active");
 
     fireEvent.click(screen.getByRole("button", { name: "About" }));
     expect(onNavigate).toHaveBeenCalledWith("about");

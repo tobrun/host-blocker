@@ -20,7 +20,11 @@ export default function App() {
       .catch((e: unknown) =>
         setNotice(e instanceof Error ? e.message : String(e)),
       );
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration -- equivalent mutant: a
+  // constant deps array compares equal on every render, so the effect
+  // still runs exactly once.
+  []);
 
   /**
    * Run a mutation, adopt the returned state, surface errors as a notice.
@@ -48,6 +52,8 @@ export default function App() {
         setBusy(false);
       }
     },
+    // The identity of `run` is not observable, so any deps array behaves the same.
+    // Stryker disable next-line ArrayDeclaration -- equivalent mutant.
     [],
   );
 

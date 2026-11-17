@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // Vite's `define` is not applied to Vitest's SSR transform, so provide the
@@ -9,4 +9,6 @@ import { cleanup } from "@testing-library/react";
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  // Drop recorded calls between tests so call-count assertions are honest.
+  vi.clearAllMocks();
 });

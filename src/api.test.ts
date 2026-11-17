@@ -69,4 +69,27 @@ describe("api wrappers", () => {
     expect(err.kind).toBe("error");
     expect(err.message).toBe("42");
   });
+
+  it("only enters the payload branch for objects that actually carry a message", async () => {
+    // No `message` key at all: the `"message" in err` guard must send this
+    // down the plain-error path even though a kind is present.
+    mockedInvoke.mockRejectedValue({ kind: "data" });
+    const keyMissing = await api.getState().catch((e) => e);
+    expect(keyMissing).toBeInstanceOf(ApiError);
+    expect(keyMissing.kind).toBe("error");
+
+    // null must not deref into the payload branch ("message" in null throws).
+    mockedInvoke.mockRejectedValue(null);
+    const nulled = await api.getState().catch((e) => e);
+    expect(nulled.kind).toBe("error");
+    expect(nulled.message).toBe("null");
+
+    // A non-object (function) that carries a `message` property must still
+    // take the plain path, because typeof is not "object".
+    const fn = Object.assign(function withMessage() {}, { message: "sneaky" });
+    mockedInvoke.mockRejectedValue(fn);
+    const callable = await api.getState().catch((e) => e);
+    expect(callable.kind).toBe("error");
+    expect(callable.message).toBe(String(fn));
+  });
 });
