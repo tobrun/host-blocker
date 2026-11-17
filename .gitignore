@@ -11,3 +11,6 @@ reports/
 # rust
 src-tauri/target/
 src-tauri/gen/schemas/
+
+# cargo-mutants
+src-tauri/mutants.out/
