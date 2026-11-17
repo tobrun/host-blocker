@@ -14,6 +14,7 @@ const initialState: UiState = {
   mode: "active",
   sites: ["youtube.com", "news.ycombinator.com"],
   baseline: {
+    source: "stevenblack",
     variant: null,
     extensions: [],
     hostCount: 59000,
@@ -156,6 +157,7 @@ describe("App", () => {
   it("wires baseline import, update and remove through to the backend", async () => {
     const imported = mockedState();
     imported.baseline = {
+      source: "stevenblack",
       variant: "fakenews-gambling-porn",
       extensions: ["fakenews"],
       hostCount: 60000,
@@ -174,10 +176,11 @@ describe("App", () => {
     render(<App />);
     await screen.findByText("HostBlocker");
 
-    fireEvent.click(screen.getByRole("button", { name: "Import" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import StevenBlack Hosts" }));
     await waitFor(() =>
       expect(mockedInvoke).toHaveBeenCalledWith("import_baseline", {
-        extensions: expect.any(Array),
+        source: "stevenblack",
+        extensions: [],
       }),
     );
 

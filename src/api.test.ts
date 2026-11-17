@@ -15,7 +15,7 @@ describe("api wrappers", () => {
     await api.getState();
     await api.addSite("x.com");
     await api.removeSite("y.com");
-    await api.importBaseline(["porn"]);
+    await api.importBaseline("oisd-small", []);
     await api.updateBaseline();
     await api.removeBaseline();
     await api.setMode("customPaused");
@@ -24,7 +24,7 @@ describe("api wrappers", () => {
       ["get_state"],
       ["add_site", { input: "x.com" }],
       ["remove_site", { input: "y.com" }],
-      ["import_baseline", { extensions: ["porn"] }],
+      ["import_baseline", { source: "oisd-small", extensions: [] }],
       ["update_baseline"],
       ["remove_baseline"],
       ["set_mode", { mode: "customPaused" }],

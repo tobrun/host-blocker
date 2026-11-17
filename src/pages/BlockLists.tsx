@@ -1,15 +1,15 @@
 import { useState } from "react";
 import AddSiteForm from "../components/AddSiteForm";
+import PopularListsCard from "../components/PopularListsCard";
 import SiteList from "../components/SiteList";
-import StevenBlackCard from "../components/StevenBlackCard";
-import type { Extension, UiState } from "../types";
+import type { Extension, SourceId, UiState } from "../types";
 
 interface Props {
   state: UiState;
   busy: boolean;
   onAddSite: (input: string) => Promise<void>;
   onRemoveSite: (site: string) => void;
-  onImportBaseline: (extensions: Extension[]) => void;
+  onImportBaseline: (source: SourceId, extensions: Extension[]) => void;
   onUpdateBaseline: () => void;
   onRemoveBaseline: () => void;
 }
@@ -42,7 +42,7 @@ export default function BlockLists({
           onChange={(e) => setQuery(e.target.value)}
         />
       </header>
-      <StevenBlackCard
+      <PopularListsCard
         baseline={state.baseline}
         busy={busy}
         onImport={onImportBaseline}

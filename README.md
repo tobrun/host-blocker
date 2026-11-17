@@ -32,9 +32,14 @@ Prebuilt assets live on the [releases page](https://github.com/tobrun/host-block
   and HostBlocker blocks the whole site — each custom host becomes four
   hosts-file entries (`0.0.0.0 host`, `0.0.0.0 www.host`, `:: host`,
   `:: www.host`).
-- **Popular lists**: imports the [StevenBlack hosts](https://github.com/StevenBlack/hosts)
-  list (unified base, optionally extended with `fakenews`, `gambling`,
-  `porn`, `social` categories) and keeps a local cache you can update.
+- **Popular lists**: import one curated baseline and keep a local cache you
+  can update — [StevenBlack hosts](https://github.com/StevenBlack/hosts)
+  (unified base, optionally extended with `fakenews`, `gambling`, `porn`,
+  `social` categories), [OISD Small](https://oisd.nl/) (low false-positive
+  ads/trackers), [AdAway](https://adaway.org/) (small, conservative) or
+  [Blocklist Project's phishing
+  list](https://github.com/blocklistproject/Lists) (security-focused).
+  Only one baseline is active at a time; importing another one replaces it.
 - **Modes**: *Active*, *Pause my list* (baseline keeps blocking) and
   *Pause all* — pausing restores your original hosts file, which is backed
   up once to `/etc/hosts.hostblocker.bak`.

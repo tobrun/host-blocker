@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use host_blocker_lib::app::App;
+use host_blocker_lib::baseline::sources::SourceId;
 use host_blocker_lib::baseline::stevenblack::Extension;
 use host_blocker_lib::domain::mode::BlockingMode;
 use host_blocker_lib::error::AppError;
@@ -196,7 +197,11 @@ async fn mode_transitions_control_what_is_written() {
     let base = server.uri();
 
     off!(env, &base, |a| a.add_site("reddit.com")).unwrap();
-    off!(env, &base, |a| a.import_baseline(&[Extension::Gambling])).unwrap();
+    off!(env, &base, |a| a.import_baseline(
+        SourceId::StevenBlack,
+        &[Extension::Gambling]
+    ))
+    .unwrap();
 
     // CustomPaused: baseline stays, custom disappears.
     off!(env, &base, |a| a.set_mode(BlockingMode::CustomPaused)).unwrap();
@@ -234,7 +239,9 @@ async fn import_update_remove_baseline_flow() {
     stub_hosts(&v2_server, "/hosts", "# v2\n0.0.0.0 new-only.example\n").await;
 
     // Import (no extensions): parser drops comments, 0.0.0.0 and localhost.
-    let state = off!(env, server.uri(), |a| a.import_baseline(&[])).unwrap();
+    let state = off!(env, server.uri(), |a| a
+        .import_baseline(SourceId::StevenBlack, &[]))
+    .unwrap();
     let view = state.baseline.clone().unwrap();
     assert_eq!(view.variant, None);
     assert_eq!(view.host_count, 2);
@@ -290,7 +297,9 @@ async fn fetch_failure_keeps_previous_baseline() {
     stub_hosts(&server, "/hosts", BASELINE_BODY).await;
     let base = server.uri();
 
-    off!(env, &base, |a| a.import_baseline(&[])).unwrap();
+    off!(env, &base, |a| a
+        .import_baseline(SourceId::StevenBlack, &[]))
+    .unwrap();
 
     let failing_server = MockServer::start().await;
     Mock::given(path("/hosts"))

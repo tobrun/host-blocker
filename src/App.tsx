@@ -5,7 +5,7 @@ import Sidebar, { type Page } from "./components/Sidebar";
 import About from "./pages/About";
 import BlockLists from "./pages/BlockLists";
 import Settings from "./pages/Settings";
-import type { BlockingMode, Extension, UiState } from "./types";
+import type { BlockingMode, UiState } from "./types";
 
 export default function App() {
   const [state, setState] = useState<UiState | null>(null);
@@ -83,7 +83,9 @@ export default function App() {
             busy={busy}
             onAddSite={(input) => run(() => api.addSite(input), true)}
             onRemoveSite={(site) => run(() => api.removeSite(site))}
-            onImportBaseline={(exts: Extension[]) => run(() => api.importBaseline(exts))}
+            onImportBaseline={(source, exts) =>
+              run(() => api.importBaseline(source, exts))
+            }
             onUpdateBaseline={() => run(() => api.updateBaseline())}
             onRemoveBaseline={() => run(() => api.removeBaseline())}
           />

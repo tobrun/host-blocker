@@ -1,4 +1,4 @@
-import type { UiState } from "../types";
+import { baselineLabel, type UiState } from "../types";
 
 interface Props {
   state: UiState;
@@ -24,15 +24,13 @@ export default function Settings({ state, busy, onUpdateBaseline, onRemoveAll }:
 
       <section className="card">
         <div className="card-header">
-          <h2>StevenBlack baseline</h2>
+          <h2>Baseline list</h2>
         </div>
         <div className="settings-row">
           {state.baseline ? (
             <>
               <div>
-                <strong>
-                  {state.baseline.variant ? `stevenblack ${state.baseline.variant}` : "stevenblack (unified)"}
-                </strong>
+                <strong>{baselineLabel(state.baseline)}</strong>
                 <p className="row-desc">
                   {state.baseline.hostCount} hosts · last updated {formatDate(state.baseline.fetchedAt)}
                 </p>

@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::baseline::sources::SourceId;
 use crate::baseline::stevenblack::Extension;
 use crate::domain::hostname::Hostname;
 use crate::domain::mode::BlockingMode;
@@ -20,12 +21,19 @@ pub struct AppState {
     pub baseline: Option<BaselineMeta>,
 }
 
-/// Metadata for the imported StevenBlack baseline; the host list itself is
+/// Metadata for the imported baseline list; the host list itself is
 /// cached separately as a plain text file next to the state.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaselineMeta {
+    /// Missing in state files written before multi-source support.
+    #[serde(default = "default_source")]
+    pub source: SourceId,
     pub extensions: Vec<Extension>,
     pub fetched_at: DateTime<Utc>,
+}
+
+fn default_source() -> SourceId {
+    SourceId::StevenBlack
 }
 
 impl Default for AppState {
@@ -153,12 +161,31 @@ mod tests {
             mode: BlockingMode::CustomPaused,
             sites: vec![Hostname::parse("https://x.com/a").unwrap()],
             baseline: Some(BaselineMeta {
+                source: crate::baseline::sources::SourceId::OisdSmall,
                 extensions: vec![Extension::Porn, Extension::Gambling],
                 fetched_at: DateTime::from_str("2026-01-02T03:04:05Z").unwrap(),
             }),
         };
         store.save(&state).unwrap();
         assert_eq!(store.load().unwrap(), state);
+    }
+
+    #[test]
+    fn state_files_without_a_source_default_to_stevenblack() {
+        // State written before multi-source support has no `source` field.
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::new(dir.path());
+        fs::write(
+            dir.path().join("state.json"),
+            r#"{"mode":"active","sites":[],"baseline":{
+                "extensions":[],"fetched_at":"2026-01-02T03:04:05Z"}}"#,
+        )
+        .unwrap();
+        let loaded = store.load().unwrap();
+        assert_eq!(
+            loaded.baseline.unwrap().source,
+            crate::baseline::sources::SourceId::StevenBlack
+        );
     }
 
     #[test]

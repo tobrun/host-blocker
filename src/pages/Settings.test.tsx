@@ -8,6 +8,7 @@ function uiState(overrides: Partial<UiState> = {}): UiState {
     mode: "active",
     sites: [],
     baseline: {
+      source: "stevenblack",
       variant: "gambling",
       extensions: ["gambling"],
       hostCount: 60500,
@@ -30,19 +31,19 @@ describe("Settings", () => {
   it("shows the unified label when there is no variant", () => {
     render(
       <Settings
-        state={uiState({ baseline: { variant: null, extensions: [], hostCount: 59000, fetchedAt: "2026-11-01T10:00:00Z" } })}
+        state={uiState({ baseline: { source: "stevenblack", variant: null, extensions: [], hostCount: 59000, fetchedAt: "2026-11-01T10:00:00Z" } })}
         busy={false}
         onUpdateBaseline={() => {}}
         onRemoveAll={() => {}}
       />,
     );
-    expect(screen.getByText("stevenblack (unified)")).toBeTruthy();
+    expect(screen.getByText("stevenblack")).toBeTruthy();
   });
 
   it("falls back to the raw timestamp for unparseable dates", () => {
     render(
       <Settings
-        state={uiState({ baseline: { variant: null, extensions: [], hostCount: 1, fetchedAt: "garbage" } })}
+        state={uiState({ baseline: { source: "adaway", variant: null, extensions: [], hostCount: 1, fetchedAt: "garbage" } })}
         busy={false}
         onUpdateBaseline={() => {}}
         onRemoveAll={() => {}}

@@ -12,7 +12,8 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use crate::baseline::fetcher::Fetcher;
-use crate::baseline::stevenblack::{baseline_label, Extension};
+use crate::baseline::sources::SourceId;
+use crate::baseline::stevenblack::Extension;
 use crate::domain::block_entry::block_lines;
 use crate::domain::hostname::Hostname;
 use crate::domain::mode::BlockingMode;
@@ -35,8 +36,10 @@ pub struct UiState {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BaselineView {
-    /// Prebuilt-variant slug without the `stevenblack` prefix, e.g.
-    /// `fakenews-gambling`; `None` for the plain unified list.
+    /// Which curated list is in use.
+    pub source: SourceId,
+    /// Prebuilt-variant slug without the source prefix, e.g.
+    /// `fakenews-gambling`; `None` for a plain list.
     pub variant: Option<String>,
     pub extensions: Vec<Extension>,
     pub host_count: usize,
@@ -55,23 +58,23 @@ pub struct App {
 }
 
 impl App {
-    /// Production wiring: real privileged writer, canonical StevenBlack
-    /// base URL.
+    /// Production wiring: real privileged writer, real list origins.
     pub fn production(
         state_dir: impl Into<PathBuf>,
         cache_dir: impl Into<PathBuf>,
         hosts_path: impl Into<PathBuf>,
     ) -> Self {
-        Self::with_parts(
+        Self::with_fetcher(
             state_dir,
             cache_dir,
             hosts_path,
             Arc::from(default_writer()),
-            crate::baseline::stevenblack::DEFAULT_BASE_URL,
+            Fetcher::production(),
         )
     }
 
-    /// Dependency-injecting constructor shared by production and tests.
+    /// Dependency-injecting constructor shared by tests: every source is
+    /// fetched from `base_url` (typically a local HTTP stub).
     pub fn with_parts(
         state_dir: impl Into<PathBuf>,
         cache_dir: impl Into<PathBuf>,
@@ -79,13 +82,29 @@ impl App {
         writer: Arc<dyn PrivilegedWriter>,
         base_url: impl Into<String>,
     ) -> Self {
+        Self::with_fetcher(
+            state_dir,
+            cache_dir,
+            hosts_path,
+            writer,
+            Fetcher::new(base_url),
+        )
+    }
+
+    pub fn with_fetcher(
+        state_dir: impl Into<PathBuf>,
+        cache_dir: impl Into<PathBuf>,
+        hosts_path: impl Into<PathBuf>,
+        writer: Arc<dyn PrivilegedWriter>,
+        fetcher: Fetcher,
+    ) -> Self {
         let state_dir = state_dir.into();
         let cache_dir = cache_dir.into();
         let hosts_path = hosts_path.into();
         let backup_path = default_backup_path(&hosts_path);
         Self {
             store: Store::with_dirs(state_dir, cache_dir.clone()),
-            fetcher: Fetcher::new(base_url),
+            fetcher,
             writer,
             staging_dir: cache_dir,
             hosts_path,
@@ -135,18 +154,29 @@ impl App {
         self.apply(&state, None)
     }
 
-    /// Download a StevenBlack variant and start using it as the baseline.
-    pub fn import_baseline(&self, extensions: &[Extension]) -> AppResult<UiState> {
-        let hosts = self.fetcher.fetch(extensions)?;
+    /// Download a curated list and start using it as the baseline.
+    /// `extensions` only apply to [`SourceId::StevenBlack`].
+    pub fn import_baseline(
+        &self,
+        source: SourceId,
+        extensions: &[Extension],
+    ) -> AppResult<UiState> {
+        let extensions = if source.supports_extensions() {
+            canonical_extensions(extensions)
+        } else {
+            Vec::new()
+        };
+        let hosts = self.fetcher.fetch(source, &extensions)?;
         let mut state = self.store.load()?;
         state.baseline = Some(BaselineMeta {
-            extensions: canonical_extensions(extensions),
+            source,
+            extensions,
             fetched_at: Utc::now(),
         });
         self.apply(&state, Some(&hosts))
     }
 
-    /// Re-download the currently selected variant. A failed download leaves
+    /// Re-download the currently selected list. A failed download leaves
     /// the previous baseline untouched.
     pub fn update_baseline(&self) -> AppResult<UiState> {
         let state = self.store.load()?;
@@ -154,7 +184,7 @@ impl App {
             .baseline
             .as_ref()
             .ok_or_else(|| AppError::User("No baseline list is imported.".into()))?;
-        let hosts = self.fetcher.fetch(&meta.extensions)?;
+        let hosts = self.fetcher.fetch(meta.source, &meta.extensions)?;
         let mut state = state.clone();
         if let Some(m) = state.baseline.as_mut() {
             m.fetched_at = Utc::now();
@@ -245,7 +275,7 @@ impl App {
         let mut baseline_hosts: Vec<String> = Vec::new();
         if let Some(meta) = &state.baseline {
             if state.mode.writes_baseline() {
-                baseline_label_text = Some(baseline_label(&meta.extensions));
+                baseline_label_text = Some(meta.source.baseline_label(&meta.extensions));
                 baseline_hosts = match baseline_override {
                     Some(h) => h.to_vec(),
                     None => self.store.load_baseline_hosts()?,
@@ -271,6 +301,7 @@ impl App {
     fn build_ui_state(&self, state: &AppState) -> AppResult<UiState> {
         let baseline = match &state.baseline {
             Some(meta) => Some(BaselineView {
+                source: meta.source,
                 variant: crate::baseline::stevenblack::variant_slug(&meta.extensions),
                 extensions: meta.extensions.clone(),
                 host_count: self.store.load_baseline_hosts()?.len(),

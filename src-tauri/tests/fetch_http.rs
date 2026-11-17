@@ -7,7 +7,8 @@ use std::path::Path;
 use std::sync::Arc;
 
 use host_blocker_lib::app::App;
-use host_blocker_lib::baseline::fetcher::Fetcher;
+use host_blocker_lib::baseline::fetcher::{Fetcher, MAX_BASELINE_HOSTS};
+use host_blocker_lib::baseline::sources::SourceId;
 use host_blocker_lib::baseline::stevenblack::Extension;
 use host_blocker_lib::error::AppError;
 use host_blocker_lib::hosts_file::writer::{PrivilegedWriter, WriteError};
@@ -46,8 +47,9 @@ async fn requests_the_variant_url_and_parses_the_body() {
     let server = MockServer::start().await;
     stub(&server, ResponseTemplate::new(200).set_body_string(BODY)).await;
     let result = off_fetch(server.uri(), move |f| {
-        let url = f.url_for(&[Extension::Gambling, Extension::FakeNews]);
-        (url, f.fetch(&[Extension::Gambling, Extension::FakeNews]))
+        let exts = [Extension::Gambling, Extension::FakeNews];
+        let url = f.url_for(SourceId::StevenBlack, &exts);
+        (url, f.fetch(SourceId::StevenBlack, &exts))
     })
     .await;
     assert_eq!(
@@ -71,7 +73,7 @@ async fn requests_the_variant_url_and_parses_the_body() {
 async fn requests_the_unified_url_without_extensions() {
     let server = MockServer::start().await;
     stub(&server, ResponseTemplate::new(200).set_body_string(BODY)).await;
-    off_fetch(server.uri(), move |f| f.fetch(&[]))
+    off_fetch(server.uri(), move |f| f.fetch(SourceId::StevenBlack, &[]))
         .await
         .unwrap();
     let requests = server.received_requests().await.unwrap();
@@ -82,7 +84,7 @@ async fn requests_the_unified_url_without_extensions() {
 async fn non_success_status_is_a_network_error() {
     let server = MockServer::start().await;
     stub(&server, ResponseTemplate::new(404)).await;
-    let err = off_fetch(server.uri(), move |f| f.fetch(&[]))
+    let err = off_fetch(server.uri(), move |f| f.fetch(SourceId::StevenBlack, &[]))
         .await
         .unwrap_err();
     match err {
@@ -99,7 +101,7 @@ async fn body_without_entries_is_rejected() {
         ResponseTemplate::new(200).set_body_string("# just a comment\n\n"),
     )
     .await;
-    let err = off_fetch(server.uri(), move |f| f.fetch(&[]))
+    let err = off_fetch(server.uri(), move |f| f.fetch(SourceId::StevenBlack, &[]))
         .await
         .unwrap_err();
     match err {
@@ -131,7 +133,7 @@ async fn import_with_unusable_body_changes_nothing() {
         tokio::task::spawn_blocking(move || {
             let w: Arc<dyn PrivilegedWriter> = Arc::new(NoopWriter);
             let app = App::with_parts(state_dir, cache_dir, hosts, w, base);
-            app.import_baseline(&[])
+            app.import_baseline(SourceId::StevenBlack, &[])
         })
         .await
         .unwrap()
@@ -145,4 +147,61 @@ async fn import_with_unusable_body_changes_nothing() {
     let persisted = store.load().unwrap();
     assert!(persisted.baseline.is_none());
     assert!(persisted.sites.is_empty());
+}
+
+#[tokio::test]
+async fn oisd_is_requested_and_parsed_as_adblock_rules() {
+    let server = MockServer::start().await;
+    stub(
+        &server,
+        ResponseTemplate::new(200).set_body_string(
+            "[Adblock Plus]\n! Title: oisd small\n||ads.example.net^\n||ok.example^\n@@||ok.example^\n",
+        ),
+    )
+    .await;
+    let hosts = off_fetch(server.uri(), move |f| f.fetch(SourceId::OisdSmall, &[]))
+        .await
+        .unwrap();
+    assert_eq!(hosts, ["0.0.0.0 ads.example.net"]);
+    let requests = server.received_requests().await.unwrap();
+    assert_eq!(requests[0].url.path(), "/oisd_hostsmall.txt");
+}
+
+#[tokio::test]
+async fn adaway_and_blocklistproject_use_hosts_parsing_on_their_paths() {
+    for (source, path) in [
+        (SourceId::AdAway, "/adaway.txt"),
+        (SourceId::BlocklistProjectPhishing, "/phishing.txt"),
+    ] {
+        let server = MockServer::start().await;
+        stub(
+            &server,
+            ResponseTemplate::new(200).set_body_string("127.0.0.1 ads.example.net\n"),
+        )
+        .await;
+        let hosts = off_fetch(server.uri(), move |f| f.fetch(source, &[]))
+            .await
+            .unwrap();
+        assert_eq!(hosts, ["0.0.0.0 ads.example.net"]);
+        let requests = server.received_requests().await.unwrap();
+        assert_eq!(requests[0].url.path(), path);
+    }
+}
+
+#[tokio::test]
+async fn oversized_list_is_refused() {
+    let server = MockServer::start().await;
+    let body: String = (0..=MAX_BASELINE_HOSTS)
+        .map(|i| format!("0.0.0.0 h{i}.example.net\n"))
+        .collect();
+    stub(&server, ResponseTemplate::new(200).set_body_string(body)).await;
+    let err = off_fetch(server.uri(), move |f| {
+        f.fetch(SourceId::BlocklistProjectPhishing, &[])
+    })
+    .await
+    .unwrap_err();
+    match err {
+        AppError::Network(msg) => assert!(msg.contains("at most"), "{msg}"),
+        other => panic!("expected Network, got {other:?}"),
+    }
 }

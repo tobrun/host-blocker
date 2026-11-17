@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { BlockingMode, Extension, UiState } from "./types";
+import type { BlockingMode, Extension, SourceId, UiState } from "./types";
 
 /** Error carrying the backend's user-facing message and machine kind. */
 export class ApiError extends Error {
@@ -33,8 +33,11 @@ export async function removeSite(input: string): Promise<UiState> {
   return invoke<UiState>("remove_site", { input }).catch(rethrow);
 }
 
-export async function importBaseline(extensions: Extension[]): Promise<UiState> {
-  return invoke<UiState>("import_baseline", { extensions }).catch(rethrow);
+export async function importBaseline(
+  source: SourceId,
+  extensions: Extension[],
+): Promise<UiState> {
+  return invoke<UiState>("import_baseline", { source, extensions }).catch(rethrow);
 }
 
 export async function updateBaseline(): Promise<UiState> {

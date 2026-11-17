@@ -59,20 +59,6 @@ pub fn download_url_with_base(base: &str, exts: &[Extension]) -> String {
     }
 }
 
-/// URL of the prebuilt list for the selection on GitHub.
-pub fn download_url(exts: &[Extension]) -> String {
-    download_url_with_base(DEFAULT_BASE_URL, exts)
-}
-
-/// Human-readable label written into the managed section header, e.g.
-/// `stevenblack` or `stevenblack fakenews-gambling`.
-pub fn baseline_label(exts: &[Extension]) -> String {
-    match variant_slug(exts) {
-        None => "stevenblack".to_string(),
-        Some(slug) => format!("stevenblack {slug}"),
-    }
-}
-
 /// Hosts a baseline line must not resolve (kept out of the baseline).
 const SKIPPED_HOSTS: &[&str] = &[
     "0.0.0.0",
@@ -93,14 +79,16 @@ const SKIPPED_HOSTS: &[&str] = &[
     "ip6-allhosts",
 ];
 
-/// Parse a StevenBlack-style hosts file, keeping one `0.0.0.0 <host>` line
-/// per unique host of every valid entry, in first-seen order. These lines
-/// are written into the managed section verbatim.
+/// Parse a hosts-format blocklist (StevenBlack, AdAway, Blocklist Project),
+/// keeping one `0.0.0.0 <host>` line per unique host of every valid entry,
+/// in first-seen order. `127.0.0.1` sinks are normalised to `0.0.0.0`. These
+/// lines are written into the managed section verbatim.
 ///
-/// Dropped: comments, blank lines, inline comments, non-`0.0.0.0` lines,
+/// Dropped: comments, blank lines, inline comments, other-address lines,
 /// `0.0.0.0 0.0.0.0`, loopback/localhost entries and malformed hosts.
 pub fn parse_baseline(content: &str) -> Vec<String> {
     use crate::hosts_file::constants::SINK_V4;
+    const SINKS: [&str; 2] = [SINK_V4, "127.0.0.1"];
     let mut seen = HashSet::new();
     let mut lines = Vec::new();
     for raw in content.lines() {
@@ -113,7 +101,7 @@ pub fn parse_baseline(content: &str) -> Vec<String> {
         let (Some(addr), Some(host), None) = (fields.next(), fields.next(), fields.next()) else {
             continue;
         };
-        if addr != SINK_V4 {
+        if !SINKS.contains(&addr) {
             continue;
         }
         if !is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
@@ -124,6 +112,50 @@ pub fn parse_baseline(content: &str) -> Vec<String> {
         }
     }
     lines
+}
+
+/// Parse an Adblock Plus element-hiding list (OISD): `||<host>^` rules plus
+/// bare-domain lines, with `@@||<host>^` exception rules subtracted from
+/// the result. Everything else (`!`/`#` comments, `[Adblock …]` headers,
+/// pattern rules containing `*` or `/`) is ignored.
+pub fn parse_domain_list(content: &str) -> Vec<String> {
+    use crate::hosts_file::constants::SINK_V4;
+    let mut blocked: Vec<String> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut exceptions: HashSet<String> = HashSet::new();
+    for raw in content.lines() {
+        let line = raw.trim().trim_end_matches('\r');
+        if line.is_empty()
+            || line.starts_with('!')
+            || line.starts_with('#')
+            || line.starts_with('[')
+        {
+            continue;
+        }
+        let (rule, is_exception) = match line.strip_prefix("@@") {
+            Some(rest) => (rest, true),
+            None => (line, false),
+        };
+        let host = match rule.strip_prefix("||") {
+            Some(rest) => rest.split(['^', '$']).next().unwrap_or(rest),
+            None if rule.contains('*') || rule.contains('/') || rule.contains('^') => continue,
+            None => rule,
+        };
+        let host = host.trim();
+        if !is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
+            continue;
+        }
+        if is_exception {
+            exceptions.insert(host.to_string());
+        } else if seen.insert(host.to_string()) {
+            blocked.push(host.to_string());
+        }
+    }
+    blocked
+        .into_iter()
+        .filter(|h| !exceptions.contains(h))
+        .map(|h| format!("{SINK_V4} {h}"))
+        .collect()
 }
 
 /// Minimal shape check for a hosts-file entry name (lists are plain ASCII).
@@ -144,6 +176,7 @@ fn is_plausible_host(host: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::baseline::sources::SourceId;
     use Extension::*;
 
     #[test]
@@ -163,7 +196,7 @@ mod tests {
             (Social, "social"),
         ] {
             assert_eq!(
-                download_url(&[ext]),
+                SourceId::StevenBlack.url(&[ext]),
                 format!("https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/{slug}/hosts")
             );
         }
@@ -190,19 +223,13 @@ mod tests {
     fn real_default_urls_exist() {
         // Smoke-check the canonical shapes against the upstream repository.
         assert_eq!(
-            download_url(&[]),
+            download_url_with_base(DEFAULT_BASE_URL, &[]),
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
         );
         assert_eq!(
-            download_url(&[FakeNews, Gambling]),
+            download_url_with_base(DEFAULT_BASE_URL, &[FakeNews, Gambling]),
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts"
         );
-    }
-
-    #[test]
-    fn baseline_labels() {
-        assert_eq!(baseline_label(&[]), "stevenblack");
-        assert_eq!(baseline_label(&[Gambling]), "stevenblack gambling");
     }
 
     fn parsed(content: &str) -> Vec<String> {
@@ -320,6 +347,65 @@ mod tests {
         assert_eq!(
             parsed("0.0.0.0 a.example.com\r\n0.0.0.0 b.example.com\r\n"),
             vec!["0.0.0.0 a.example.com", "0.0.0.0 b.example.com"]
+        );
+    }
+
+    #[test]
+    fn parser_normalises_loopback_sink_to_zero() {
+        assert_eq!(
+            parsed("127.0.0.1 ads.example.com\n0.0.0.0 b.example.com\n127.0.0.1 ads.example.com"),
+            vec!["0.0.0.0 ads.example.com", "0.0.0.0 b.example.com"]
+        );
+        // Other 127.x addresses stay out (they carry local service meaning).
+        assert_eq!(parsed("127.0.0.53 c.example.com"), Vec::<String>::new());
+    }
+
+    #[test]
+    fn adblock_parser_keeps_element_rules_and_bare_domains() {
+        assert_eq!(
+            parse_domain_list("||ads.example.com^\n||track.example.net^\nspecial.example.org\n"),
+            vec![
+                "0.0.0.0 ads.example.com",
+                "0.0.0.0 track.example.net",
+                "0.0.0.0 special.example.org"
+            ]
+        );
+    }
+
+    #[test]
+    fn adblock_parser_skips_headers_comments_and_patterns() {
+        assert_eq!(
+            parse_domain_list(
+                "[Adblock Plus]\n! Title: test\n# comment\n||good.example.com^\n\
+                 ||bad.example.com/path^\n||wild.example.com/*.js^\n||sub.*.example.com^\n@@\n"
+            ),
+            vec!["0.0.0.0 good.example.com"]
+        );
+    }
+
+    #[test]
+    fn adblock_parser_subtracts_exception_rules() {
+        assert_eq!(
+            parse_domain_list(
+                "||blocked.example.com^\n||allowed.example.com^\n@@||allowed.example.com^\n||a.example^\n"
+            ),
+            vec!["0.0.0.0 blocked.example.com", "0.0.0.0 a.example"]
+        );
+    }
+
+    #[test]
+    fn adblock_parser_strips_option_suffixes_and_dedupes() {
+        assert_eq!(
+            parse_domain_list("||a.example.com^$third-party\n||a.example.com^\n||localhost^\n"),
+            vec!["0.0.0.0 a.example.com"]
+        );
+    }
+
+    #[test]
+    fn adblock_parser_handles_crlf_and_bad_hosts() {
+        assert_eq!(
+            parse_domain_list("||a.example.com^\r\n||é.com^\r\n||ok.example\r\n"),
+            vec!["0.0.0.0 a.example.com", "0.0.0.0 ok.example"]
         );
     }
 

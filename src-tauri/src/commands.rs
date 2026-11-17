@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tauri::State;
 
 use crate::app::{App, UiState};
+use crate::baseline::sources::SourceId;
 use crate::baseline::stevenblack::Extension;
 use crate::domain::mode::BlockingMode;
 use crate::error::AppResult;
@@ -39,9 +40,10 @@ pub async fn remove_site(app: State<'_, Arc<App>>, input: String) -> AppResult<U
 #[tauri::command]
 pub async fn import_baseline(
     app: State<'_, Arc<App>>,
+    source: SourceId,
     extensions: Vec<Extension>,
 ) -> AppResult<UiState> {
-    call(app, move |app| app.import_baseline(&extensions)).await
+    call(app, move |app| app.import_baseline(source, &extensions)).await
 }
 
 #[tauri::command]
