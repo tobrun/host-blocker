@@ -117,7 +117,8 @@ pub fn parse_baseline(content: &str) -> Vec<String> {
 /// Parse an Adblock Plus element-hiding list (OISD): `||<host>^` rules plus
 /// bare-domain lines, with `@@||<host>^` exception rules subtracted from
 /// the result. Everything else (`!`/`#` comments, `[Adblock …]` headers,
-/// pattern rules containing `*` or `/`) is ignored.
+/// pattern rules containing `*` or `/`) is ignored: none of them can pass
+/// [`is_plausible_host`], which only accepts hostname bytes.
 pub fn parse_domain_list(content: &str) -> Vec<String> {
     use crate::hosts_file::constants::SINK_V4;
     let mut blocked: Vec<String> = Vec::new();
@@ -125,20 +126,12 @@ pub fn parse_domain_list(content: &str) -> Vec<String> {
     let mut exceptions: HashSet<String> = HashSet::new();
     for raw in content.lines() {
         let line = raw.trim().trim_end_matches('\r');
-        if line.is_empty()
-            || line.starts_with('!')
-            || line.starts_with('#')
-            || line.starts_with('[')
-        {
-            continue;
-        }
         let (rule, is_exception) = match line.strip_prefix("@@") {
             Some(rest) => (rest, true),
             None => (line, false),
         };
         let host = match rule.strip_prefix("||") {
             Some(rest) => rest.split(['^', '$']).next().unwrap_or(rest),
-            None if rule.contains('*') || rule.contains('/') || rule.contains('^') => continue,
             None => rule,
         };
         let host = host.trim();

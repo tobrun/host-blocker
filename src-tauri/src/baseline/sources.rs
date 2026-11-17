@@ -195,4 +195,19 @@ mod tests {
         assert_eq!(SourceId::OisdSmall.format(), ListFormat::Adblock);
         assert_eq!(SourceId::AdAway.format(), ListFormat::Hosts);
     }
+
+    #[test]
+    fn homepages_are_the_upstream_projects() {
+        // Shown next to each list in the UI: pin them to the real projects.
+        assert_eq!(
+            SourceId::StevenBlack.homepage(),
+            "https://github.com/StevenBlack/hosts"
+        );
+        assert_eq!(SourceId::OisdSmall.homepage(), "https://oisd.nl/");
+        assert_eq!(SourceId::AdAway.homepage(), "https://adaway.org/");
+        assert_eq!(
+            SourceId::BlocklistProjectPhishing.homepage(),
+            "https://github.com/blocklistproject/Lists"
+        );
+    }
 }

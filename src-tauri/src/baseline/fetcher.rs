@@ -74,12 +74,39 @@ impl Fetcher {
                 "{url} contained no usable entries"
             )));
         }
-        if hosts.len() > MAX_BASELINE_HOSTS {
-            return Err(AppError::Network(format!(
-                "{url} lists {} entries; HostBlocker supports at most {MAX_BASELINE_HOSTS} in /etc/hosts",
-                hosts.len()
-            )));
-        }
+        check_size(hosts.len(), &url)?;
         Ok(hosts)
+    }
+}
+
+/// Refuse lists so large that writing them to `/etc/hosts` would slow every
+/// name lookup on the machine.
+fn check_size(count: usize, url: &str) -> AppResult<()> {
+    if count > MAX_BASELINE_HOSTS {
+        return Err(AppError::Network(format!(
+            "{url} lists {count} entries; HostBlocker supports at most {MAX_BASELINE_HOSTS} in /etc/hosts"
+        )));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn size_limit_is_inclusive() {
+        let url = "https://example.test/hosts";
+        check_size(MAX_BASELINE_HOSTS, url).expect("exactly the limit is allowed");
+        check_size(MAX_BASELINE_HOSTS + 1, url).expect_err("one over the limit is refused");
+        check_size(1, url).expect("a normal list is allowed");
+    }
+
+    #[test]
+    fn refusal_names_the_list_and_the_limit() {
+        let err = check_size(MAX_BASELINE_HOSTS + 7, "https://example.test/hosts").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("https://example.test/hosts"), "{msg}");
+        assert!(msg.contains("250000"), "{msg}");
     }
 }

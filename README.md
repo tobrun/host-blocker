@@ -68,7 +68,7 @@ Mutation testing (CI runs the same tools):
 
 ```sh
 cargo install cargo-mutants
-cargo mutants --manifest-path src-tauri/Cargo.toml   # Rust
+(cd src-tauri && cargo mutants --in-place)          # Rust; see src-tauri/.cargo/mutants.toml
 pnpm test:mutation                                   # frontend (StrykerJS)
 ```
 
