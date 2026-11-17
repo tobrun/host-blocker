@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "src-tauri", "coverage", ".stryker-tmp"] },
+  { ignores: ["dist", "node_modules", "src-tauri", "coverage", ".stryker-tmp", "stryker-tmp", "reports"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -21,7 +21,7 @@ export default tseslint.config(
   },
   {
     // Vitest/Node files for tests and tooling
-    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**/*", "vitest.config.ts", "vite.config.ts", "stryker.config.json"],
+    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**/*", "vitest.config.ts", "vite.config.ts"],
     languageOptions: {
       globals: { ...globals.node },
     },

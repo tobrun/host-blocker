@@ -29,28 +29,46 @@ describe("AddSiteForm", () => {
     expect(input).toHaveProperty("value", "not a host");
   });
 
-  it("disables submit while empty or busy", () => {
+  it("disables submit while empty, whitespace-only or busy", () => {
     render(<AddSiteForm busy={false} onSubmit={vi.fn()} />);
     const submit = screen.getByRole("button", { name: "Add" });
+    expect(submit.hasAttribute("disabled")).toBe(true);
+
+    fireEvent.change(screen.getByLabelText("Website URL"), { target: { value: "   " } });
     expect(submit.hasAttribute("disabled")).toBe(true);
 
     fireEvent.change(screen.getByLabelText("Website URL"), { target: { value: "example.com" } });
     expect(submit.hasAttribute("disabled")).toBe(false);
   });
 
-  it("does not submit twice while a submission is pending", async () => {
+  it("ignores a form submit with an empty field", () => {
+    const onSubmit = vi.fn();
+    render(<AddSiteForm busy={false} onSubmit={onSubmit} />);
+    fireEvent.submit(screen.getByLabelText("Website URL"));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows the pending label and re-enables after completion", async () => {
     let release: () => void = () => {};
     const onSubmit = vi.fn().mockImplementation(
       () => new Promise<void>((resolve) => (release = resolve)),
     );
     render(<AddSiteForm busy={false} onSubmit={onSubmit} />);
 
-    fireEvent.change(screen.getByLabelText("Website URL"), { target: { value: "example.com" } });
+    const input = screen.getByLabelText("Website URL");
+    fireEvent.change(input, { target: { value: "example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
-    fireEvent.click(screen.getByRole("button", { name: "Applying…" }));
+
+    const pendingButton = screen.getByRole("button", { name: "Applying…" });
+    expect(pendingButton.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(pendingButton);
     expect(onSubmit).toHaveBeenCalledTimes(1);
 
     release();
     await waitFor(() => expect(screen.getByRole("button", { name: "Add" })).toBeTruthy());
+
+    // Field was cleared on success: another submit is a no-op.
+    fireEvent.submit(input);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });

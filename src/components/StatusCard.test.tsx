@@ -68,6 +68,28 @@ describe("StatusCard", () => {
     }
   });
 
+  it("toggles the visual switch with the mode", () => {
+    const { container } = render(
+      <StatusCard state={uiState()} busy={false} onSetMode={() => {}} />,
+    );
+    expect(container.querySelector(".status-toggle")?.className).toContain("on");
+    expect(container.querySelector(".status-line")?.className).toContain("status-active");
+  });
+
+  it("shows the off switch for paused modes", () => {
+    const { container } = render(
+      <StatusCard state={uiState({ mode: "allPaused" })} busy={false} onSetMode={() => {}} />,
+    );
+    expect(container.querySelector(".status-toggle")?.className).toContain("off");
+    expect(container.querySelector(".status-line")?.className).toContain("status-allPaused");
+  });
+
+  it("requests resume from the resume button", () => {
+    const onSetMode = renderCard(uiState({ mode: "allPaused" }));
+    screen.getByRole("button", { name: "Resume blocking" }).click();
+    expect(onSetMode).toHaveBeenCalledWith("active");
+  });
+
   it("requests the mode of the clicked button", () => {
     const onSetMode = renderCard();
     screen.getByRole("button", { name: "Pause my list" }).click();

@@ -5,6 +5,7 @@ dist/
 
 # stryker
 .stryker-tmp/
+stryker-tmp/
 reports/
 
 # rust

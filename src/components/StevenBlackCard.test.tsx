@@ -37,6 +37,17 @@ describe("StevenBlackCard", () => {
     expect(onImport).toHaveBeenCalledWith([]);
   });
 
+  it("keeps checkboxes editable while no baseline exists", () => {
+    renderCard();
+    expect((screen.getByLabelText("porn") as HTMLInputElement).disabled).toBe(false);
+  });
+
+  it("prevents in-app navigation on the project link", () => {
+    renderCard();
+    const prevented = fireEvent.click(screen.getByRole("link"));
+    expect(prevented).toBe(false);
+  });
+
   it("ticking categories passes them to onImport", () => {
     const { onImport } = renderCard();
     fireEvent.click(screen.getByLabelText("gambling"));
