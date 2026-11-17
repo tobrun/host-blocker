@@ -24,6 +24,12 @@ pub enum AppError {
     Data(String),
 }
 
+impl From<serde_json::Error> for AppError {
+    fn from(e: serde_json::Error) -> Self {
+        AppError::Data(e.to_string())
+    }
+}
+
 impl AppError {
     pub fn kind(&self) -> &'static str {
         match self {

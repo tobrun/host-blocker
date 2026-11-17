@@ -93,14 +93,16 @@ const SKIPPED_HOSTS: &[&str] = &[
     "ip6-allhosts",
 ];
 
-/// Parse a StevenBlack-style hosts file, keeping one entry per unique host
-/// of every valid `0.0.0.0 <hostname>` line, in first-seen order.
+/// Parse a StevenBlack-style hosts file, keeping one `0.0.0.0 <host>` line
+/// per unique host of every valid entry, in first-seen order. These lines
+/// are written into the managed section verbatim.
 ///
 /// Dropped: comments, blank lines, inline comments, non-`0.0.0.0` lines,
 /// `0.0.0.0 0.0.0.0`, loopback/localhost entries and malformed hosts.
 pub fn parse_baseline(content: &str) -> Vec<String> {
+    use crate::hosts_file::constants::SINK_V4;
     let mut seen = HashSet::new();
-    let mut hosts = Vec::new();
+    let mut lines = Vec::new();
     for raw in content.lines() {
         let line = raw.trim().trim_end_matches('\r');
         if line.is_empty() || line.starts_with('#') {
@@ -111,17 +113,17 @@ pub fn parse_baseline(content: &str) -> Vec<String> {
         let (Some(addr), Some(host), None) = (fields.next(), fields.next(), fields.next()) else {
             continue;
         };
-        if addr != crate::hosts_file::constants::SINK_V4 {
+        if addr != SINK_V4 {
             continue;
         }
         if !is_plausible_host(host) || SKIPPED_HOSTS.contains(&host) {
             continue;
         }
         if seen.insert(host.to_string()) {
-            hosts.push(host.to_string());
+            lines.push(format!("{SINK_V4} {host}"));
         }
     }
-    hosts
+    lines
 }
 
 /// Minimal shape check for a hosts-file entry name (lists are plain ASCII).
@@ -211,7 +213,7 @@ mod tests {
     fn parser_keeps_plain_0_0_0_0_entries() {
         assert_eq!(
             parsed("0.0.0.0 ads.example.com\n0.0.0.0 tracker.example.net"),
-            vec!["ads.example.com", "tracker.example.net"]
+            vec!["0.0.0.0 ads.example.com", "0.0.0.0 tracker.example.net"]
         );
     }
 
@@ -219,7 +221,7 @@ mod tests {
     fn parser_drops_comments_and_blanks() {
         assert_eq!(
             parsed("# header\n\n   \n0.0.0.0 a.example.com\n  # 0.0.0.0 commented"),
-            vec!["a.example.com"]
+            vec!["0.0.0.0 a.example.com"]
         );
     }
 
@@ -227,7 +229,7 @@ mod tests {
     fn parser_drops_inline_comments_but_keeps_the_host() {
         assert_eq!(
             parsed("0.0.0.0 a.example.com # added 2024"),
-            vec!["a.example.com"]
+            vec!["0.0.0.0 a.example.com"]
         );
     }
 
@@ -247,7 +249,7 @@ mod tests {
                 ]
                 .join("\n"),
             ),
-            vec!["real.example.com"]
+            vec!["0.0.0.0 real.example.com"]
         );
     }
 
@@ -267,7 +269,7 @@ mod tests {
                 ]
                 .join("\n"),
             ),
-            vec!["good.example.com"]
+            vec!["0.0.0.0 good.example.com"]
         );
     }
 
@@ -275,7 +277,7 @@ mod tests {
     fn parser_dedupes_preserving_first_seen_order() {
         assert_eq!(
             parsed("0.0.0.0 b.example.com\n0.0.0.0 a.example.com\n0.0.0.0 b.example.com"),
-            vec!["b.example.com", "a.example.com"]
+            vec!["0.0.0.0 b.example.com", "0.0.0.0 a.example.com"]
         );
     }
 
@@ -283,7 +285,7 @@ mod tests {
     fn parser_handles_crlf() {
         assert_eq!(
             parsed("0.0.0.0 a.example.com\r\n0.0.0.0 b.example.com\r\n"),
-            vec!["a.example.com", "b.example.com"]
+            vec!["0.0.0.0 a.example.com", "0.0.0.0 b.example.com"]
         );
     }
 
