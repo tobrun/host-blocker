@@ -1,6 +1,6 @@
 [package]
 name = "host-blocker"
-version = "0.1.0"
+version = "0.1.1"
 description = "HostBlocker — block websites via /etc/hosts"
 authors = ["tobrun"]
 edition = "2021"
