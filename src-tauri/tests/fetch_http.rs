@@ -205,3 +205,19 @@ async fn oversized_list_is_refused() {
         other => panic!("expected Network, got {other:?}"),
     }
 }
+
+/// Hits the real upstreams; run manually with
+/// `cargo test -- --ignored` to verify the production URLs and parsers.
+#[tokio::test]
+#[ignore]
+async fn every_production_source_fetches_and_parses() {
+    for source in SourceId::ALL {
+        let hosts = tokio::task::spawn_blocking(move || Fetcher::production().fetch(source, &[]))
+            .await
+            .unwrap()
+            .unwrap_or_else(|e| panic!("{}: {e}", source.label()));
+        assert!(!hosts.is_empty(), "{} parsed nothing", source.label());
+        assert!(hosts.iter().all(|l| l.starts_with("0.0.0.0 ")));
+        println!("{}: {} entries", source.label(), hosts.len());
+    }
+}

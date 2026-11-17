@@ -125,4 +125,31 @@ describe("PopularListsCard", () => {
     // StevenBlack is no longer active, so its checkboxes are editable again.
     expect((screen.getByLabelText("porn") as HTMLInputElement).disabled).toBe(false);
   });
+
+  it("shows a plain active badge for stevenblack without a variant", () => {
+    renderCard({ ...stevenblack, variant: null, extensions: [] });
+    expect(screen.getByText("active")).toBeTruthy();
+    expect(screen.queryByText(/^active · /)).toBeNull();
+  });
+
+  it("labels the row buttons Import / Replace in plain text", () => {
+    // Accessible names come from aria-label, so pin the visible text too.
+    const { rerender } = render(
+      <PopularListsCard baseline={null} busy={false} onImport={() => {}} onUpdate={() => {}} onRemove={() => {}} />,
+    );
+    expect(screen.getByRole("button", { name: "Import AdAway" }).textContent).toBe("Import");
+
+    rerender(
+      <PopularListsCard
+        baseline={oisd}
+        busy={false}
+        onImport={() => {}}
+        onUpdate={() => {}}
+        onRemove={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Replace with StevenBlack Hosts" }).textContent,
+    ).toBe("Replace");
+  });
 });

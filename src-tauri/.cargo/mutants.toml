@@ -8,6 +8,10 @@
 # - hosts_file/writer.rs: osascript/pkexec shell-outs that cannot run in CI;
 #   trait-selected platform code exercised manually per the test plan.
 # - Test modules are skipped by cargo-mutants automatically.
+#
+# Run cargo-mutants with `--in-place`: tauri.conf.json resolves its version
+# from ../package.json, and the copied temporary tree has no sibling
+# package.json, so the build script fails there before any mutant runs.
 exclude_globs = [
   "src/main.rs",
   "src/lib.rs",
